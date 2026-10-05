@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+.vscode/
+downloads/
+baseline/
+test_parsing.py
+parsing_2.py
