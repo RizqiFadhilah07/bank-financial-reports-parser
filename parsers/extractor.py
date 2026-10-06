@@ -11,15 +11,10 @@ from patterns import (
 
 
 def extract_metrics(text, lookup, bank_name):
-    """Fase 1: logika dipindah persis dari parsing.py.
-
-    Mengembalikan list of (metric_order, metric_alias, value, raw_text).
-    value bisa None (akan diubah jadi 0 di main).
-    """
     results = []
     matched_aliases = set()
 
-    # ---------- Metric dengan Special Case ----------
+    # metric special case
     for metric_alias, section_header in SECTION_ANCHORED_METRICS.items():
         match_row = next((row for row in lookup if row[1] == metric_alias), None)
         if match_row is None:
@@ -63,7 +58,7 @@ def extract_metrics(text, lookup, bank_name):
 
     pure_header_metrics = PURE_HEADER_METRICS.get(bank_name, set())
 
-    # ---------- Metric Normal ----------
+    # metric normal
     for search_term, metric_alias, metric_order in lookup:
         if metric_alias in matched_aliases:
             continue
@@ -198,7 +193,7 @@ def extract_metrics(text, lookup, bank_name):
         span_start, span_end = m.start(), base_end + vm.end()
         text = text[:span_start] + (" " * (span_end - span_start)) + text[span_end:]
 
-    # ---------- Fallback sub-item bernomor huruf ----------
+    # Fallback
     for metric_alias, (section_header, ordinal, skip_agg) in LETTERED_SUBITEM_FALLBACK.items():
         if metric_alias in matched_aliases:
             continue

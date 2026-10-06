@@ -63,7 +63,6 @@ def save_results(cur, bank_id, period_date, period_type, pdf_path, results):
 
 
 def process_bank(conn, bank_name, pdf_path, period_date, verbose=True):
-    """Parse satu PDF dan simpan ke DB, memakai koneksi yang diberikan."""
     cur = conn.cursor()
 
     cur.execute("SELECT bank_id, period_type FROM banks WHERE bank_name = %s", (bank_name,))
