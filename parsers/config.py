@@ -53,6 +53,17 @@ NEGATIVE_ALIASES = {
     "non_profit_sharing_distribution", "profit_sharing_distribution",
 }
 
+TERM_VARIANTS = {
+    "UOB": {
+        "profit_before_tax": ["LABA (RUGI) PERIODE BERJALAN SEBELUM PAJAK"],
+        "net_profit": ["LABA (RUGI) BERSIH PERIODE BERJALAN"],
+        "other_comprehensive_income_after_tax": [
+            "PENGHASILAN KOMPREHENSIF LAIN PERIODE BERJALAN SETELAH PAJAK"],
+        "total_comprehensive_income": [
+            "TOTAL LABA (RUGI) KOMPREHENSIF PERIODE BERJALAN"],
+        "current_tax_expense": ["Taksiran pajak periode berjalan"],
+    },
+}
 
 NUMBER_RE = re.compile(r"\(?-?\d[\d.,]*\)?")
 NEG_RE = re.compile(r"\b(beban|rugi|kerugian|biaya)\b", re.IGNORECASE)

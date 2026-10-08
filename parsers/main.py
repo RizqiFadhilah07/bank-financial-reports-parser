@@ -8,6 +8,7 @@ from db import get_connection
 from pdf_reader import read_pages, clean_text
 from extractor import extract_metrics
 from number_utils import get_sign_type
+from config import TERM_VARIANTS
 
 
 def load_lookup(cur, bank_id):
@@ -62,6 +63,17 @@ def save_results(cur, bank_id, period_date, period_type, pdf_path, results):
     )
 
 
+def add_term_variants(lookup, bank_name):
+    variants = TERM_VARIANTS.get(bank_name, {})
+    if not variants:
+        return lookup
+    order_of = {alias: order for _, alias, order in lookup}
+    extra = [(term, alias, order_of[alias])
+             for alias, terms in variants.items() if alias in order_of
+             for term in terms]
+    return sorted(lookup + extra, key=lambda row: len(row[0]), reverse=True)
+
+
 def process_bank(conn, bank_name, pdf_path, period_date, verbose=True):
     cur = conn.cursor()
 
@@ -73,6 +85,7 @@ def process_bank(conn, bank_name, pdf_path, period_date, verbose=True):
     print(f"Bank ditemukan: {bank_name} | bank_id={bank_id} | period_type={period_type}")
 
     lookup = load_lookup(cur, bank_id)
+    lookup = add_term_variants(lookup, bank_name)
     alias_label = {a: t for t, a, o in lookup}
     print(f"Metric Dictionary: {len(lookup)} metrik untuk bank ini")
 
