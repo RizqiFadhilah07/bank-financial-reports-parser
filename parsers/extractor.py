@@ -95,6 +95,13 @@ def extract_section_anchored(text, lookup, results, matched):
         vm = NUMBER_RE.search(after)
         if not vm:
             continue
+
+        if re.search(r"[A-Za-z]", after[:vm.start()]):
+            results.append((order, alias, None, text[m_start:m_end].strip()))
+            matched.add(alias)
+            text = blank_out(text, m_start, m_end)
+            continue
+            
         value = parse_number(vm.group(0))
         if value is None:
             continue
