@@ -7,3 +7,7 @@ downloads/
 baseline/
 test_parsing.py
 parsing_2.py
+logs/
+dump_text.py
+debug_one.py
+trace_one.py
