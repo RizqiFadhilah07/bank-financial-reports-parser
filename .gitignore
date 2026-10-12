@@ -11,3 +11,4 @@ logs/
 dump_text.py
 debug_one.py
 trace_one.py
+downloads_backup/
