@@ -17,6 +17,10 @@ eligible_metric = {
     ("UOB", "total_equity_attributable_to_owners"): date(2026, 7, 31),
 }
 
+LAPORAN_TIDAK_TERBACA = {
+    ("Bank Mega Syariah", date(2026, 1, 31)): "PDF hasil scan, 0 karakter teks (report_id 781)",
+}
+
 SIGNED = "value * (CASE sign_type WHEN '-' THEN -1 ELSE 1 END)"
 
 SQL_NERACA = """
@@ -84,6 +88,17 @@ SQL_ELIGIBLE_METRIC = """
     ORDER BY b.bank_name, fr.period_date, m.metric_alias
 """
 
+SQL_EMPTY_REPORT = """
+    SELECT b.bank_name, fr.period_date, fr.status
+    FROM financial_reports fr JOIN banks b ON b.bank_id = fr.bank_id
+    WHERE NOT EXISTS (SELECT 1 FROM financial_data fd WHERE fd.report_id = fr.report_id)
+    AND (%(p)s IS NULL OR fr.period_date = %(p)s)
+    ORDER BY fr.period_date, b.bank_name
+"""
+
+def empty_report(rows):
+    return [(b, p, s) for b, p, s in rows if (b, p) not in LAPORAN_TIDAK_TERBACA]
+
 def setup_logging():
     LOG_DIR.mkdir(exist_ok=True)
     fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
@@ -120,7 +135,8 @@ def main():
             ("neraca", fetch(cur, SQL_NERACA, args.month)),
             ("laba", fetch(cur, SQL_LABA, args.month)),
             ("leaking_label", fetch(cur, SQL_LABEL_LEAKING, args.month)),
-            ("missing_metric", not_eligible_metric(fetch(cur, SQL_ELIGIBLE_METRIC, args.month))),
+            ("metric_hilang", not_eligible_metric(fetch(cur, SQL_ELIGIBLE_METRIC, args.month))),
+            ("laporan_kosong", empty_report(fetch(cur, SQL_EMPTY_REPORT, args.month))),
         ]
         cur.close()
     finally:
