@@ -113,6 +113,7 @@ def process_bank(conn, bank_name, pdf_path, period_date, verbose=True):
     conn.commit()
     cur.close()
     print("Semua data tersimpan ke financial_data.")
+    return {"jumlah_metric" : len(results), "gagal" : sorted(missing)}
 
 
 def main():

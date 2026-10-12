@@ -1,3 +1,4 @@
+import logging
 import sys
 from pathlib import Path
 
@@ -7,6 +8,24 @@ sys.path.append(str(HERE))
 sys.path.append(str(PARSERS))
 from db import get_connection
 from main import process_bank
+
+LOG_DIR = HERE / "logs"
+logger = logging.getLogger("pipeline")
+
+def setup_logging():
+    LOG_DIR.mkdir(exist_ok=True)
+    fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+
+    file_handler = logging.FileHandler(LOG_DIR / "pipeline.log", encoding="utf-8")
+    file_handler.setFormatter(fmt)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(fmt)
+
+    logger.setLevel(logging.INFO)
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
 
 def get_pending_reports(conn):
     cur = conn.cursor()
@@ -32,28 +51,31 @@ def resolve_pdf(file_path):
 
 
 def main():
+    setup_logging()
     conn = get_connection()
     try:
         jobs = get_pending_reports(conn)
-        print(f"{len(jobs)} laporan berstatus 'downloaded'")
+        logger.info("%d laporan berstatus, 'downloaded'", len(jobs))
         
         berhasil, gagal = 0, []
         for report_id, bank_name, file_path, period_date in jobs:
-            print("=" * 70)
-            print(f"Memproses report_id={report_id} {bank_name} {period_date}")
+            logger.info("Memproses report_id=%s %s %s", report_id, bank_name, period_date)
             try:
-                process_bank(conn, bank_name, resolve_pdf(file_path),
-                            period_date, verbose=False)
+                result = process_bank(conn, bank_name, resolve_pdf(file_path), period_date, verbose=False)
+                if result["gagal"]:
+                    logger.warning("OK dengan %d metric yang gagal terbaca: %s %s ->%s", 
+                                   len(result["gagal"]), bank_name, period_date,", ".join(result['gagal']))
+                else:
+                    logger.info("OK: %s %s (%d metric)", bank_name, period_date, result['jumlah_metric'])
                 berhasil += 1
             except Exception as e:
                 conn.rollback()
                 gagal.append((report_id, bank_name, str(e)))
-                print(f"GAGAL: {bank_name}: {e}")
+                logger.exception("GAGAL: %s %s: %s", bank_name, period_date, e)
 
-        print("=" * 70)
-        print(f"Selesai.    Berhasil: {berhasil}, Gagal: {len(gagal)}")
+        logger.info("Selesai. Berhasil: %d, Gagal: %d", berhasil, len(gagal))
         for report_id, bank_name, err in gagal:
-            print(f" - {report_id} {bank_name}: {err}")
+            logger.error(" - %s %s :%s", report_id, bank_name, err)
     finally:
         conn.close()
 
