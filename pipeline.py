@@ -78,6 +78,7 @@ def main():
             logger.error(" - %s %s :%s", report_id, bank_name, err)
     finally:
         conn.close()
+    return 1 if gagal else 0
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
