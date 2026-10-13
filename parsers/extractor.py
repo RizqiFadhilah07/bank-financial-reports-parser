@@ -129,7 +129,7 @@ def extract_one_metric(text, search_term, alias, order, pure_headers):
     after = text[m.end():m.end() + 40]
     base_end = m.end()
 
-    dash_prefix = re.match(r"\s*-\s*/\s*-", after)
+    dash_prefix = re.match(r"\s*\(?\s*-\s*/\s*-(?:\s*\))?", after)
     if dash_prefix:
         base_end = m.end() + dash_prefix.end()
         after = text[base_end:base_end + 40]
