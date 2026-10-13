@@ -9,6 +9,7 @@ from pdf_reader import read_pages, clean_text
 from extractor import extract_metrics
 from number_utils import get_sign_type
 from config import TERM_VARIANTS
+from config import TERM_VARIANTS, SIGN_FLIP_PATTERNS
 
 MIN_TEXT_CHARS = 200
 
@@ -74,6 +75,12 @@ def add_term_variants(lookup, bank_name):
              for term in terms]
     return sorted(lookup + extra, key=lambda row: len(row[0]), reverse=True)
 
+def apply_sign_convention(bank_name, alias, raw_text, sign):
+    pattern = SIGN_FLIP_PATTERNS.get(bank_name, {}).get(alias)
+    if pattern and pattern.search(raw_text):
+        return "+" if sign == "-" else "-"
+    return sign
+
 
 def process_bank(conn, bank_name, pdf_path, period_date, verbose=True):
     cur = conn.cursor()
@@ -100,7 +107,8 @@ def process_bank(conn, bank_name, pdf_path, period_date, verbose=True):
 
     results = [
         (order, alias, 0 if value is None else value, raw_text,
-         get_sign_type(alias, alias_label[alias], raw_text))
+         apply_sign_convention(bank_name, alias, raw_text,
+                               get_sign_type(alias, alias_label[alias], raw_text)))
         for order, alias, value, raw_text in raw_results
     ]
     results.sort(key=lambda r: r[0])

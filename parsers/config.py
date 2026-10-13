@@ -66,6 +66,14 @@ TERM_VARIANTS = {
     "Mandiri": {
         "unused_credit_commitments": [
             "Fasilitas kredit/pembiayaan kepada nasabah yang belum ditarik"],
+        "deferred_tax_income_expense": ["(Pendapatan) beban pajak tangguhan"],
+    },
+}
+
+SIGN_FLIP_PATTERNS = {
+    "Mandiri": {
+        "deferred_tax_income_expense": re.compile(
+            r"\(\s*Pendapatan\s*\)\s*beban", re.IGNORECASE),
     },
 }
 
