@@ -63,6 +63,10 @@ TERM_VARIANTS = {
             "TOTAL LABA (RUGI) KOMPREHENSIF PERIODE BERJALAN"],
         "current_tax_expense": ["Taksiran pajak periode berjalan"],
     },
+    "Mandiri": {
+        "unused_credit_commitments": [
+            "Fasilitas kredit/pembiayaan kepada nasabah yang belum ditarik"],
+    },
 }
 
 NUMBER_RE = re.compile(r"\(?-?\d[\d.,]*\)?")
