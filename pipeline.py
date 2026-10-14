@@ -63,8 +63,11 @@ def main():
             try:
                 result = process_bank(conn, bank_name, resolve_pdf(file_path), period_date, verbose=False)
                 if result["gagal"]:
-                    logger.warning("OK dengan %d metric yang gagal terbaca: %s %s ->%s", 
-                                   len(result["gagal"]), bank_name, period_date,", ".join(result['gagal']))
+                    logger.warning("OK dengan %d metric yang gagal terbaca: %s %s",
+                                   len(result["gagal"]), bank_name, period_date)
+                    reasons = result.get("reasons", {})
+                    for alias in result["gagal"]:
+                        logger.warning("  - %s [%s]", alias, reasons.get(alias, "alasan tidak diketahui"))
                 else:
                     logger.info("OK: %s %s (%d metric)", bank_name, period_date, result['jumlah_metric'])
                 berhasil += 1
