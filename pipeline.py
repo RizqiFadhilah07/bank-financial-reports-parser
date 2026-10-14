@@ -27,6 +27,21 @@ def setup_logging():
     logger.addHandler(console_handler)
 
 
+def get_error(conn,report_id, message):
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            "UPDATE financial_reports SET error_message = %s WHERE report_id = %s",
+            (message, report_id)
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        logger.exception("Gagal mencatat error_message untuk report_id %s", report_id)
+    finally:
+        cur.close()
+
+
 def get_pending_reports(conn):
     cur = conn.cursor()
     cur.execute(
@@ -70,6 +85,7 @@ def main():
                 berhasil += 1
             except Exception as e:
                 conn.rollback()
+                get_error(conn, report_id, f"{type(e).__name__}: {e}")
                 gagal.append((report_id, bank_name, str(e)))
                 logger.exception("GAGAL: %s %s: %s", bank_name, period_date, e)
 
