@@ -10,6 +10,7 @@ from extractor import extract_metrics
 from number_utils import get_sign_type
 from config import TERM_VARIANTS
 from config import TERM_VARIANTS, SIGN_FLIP_PATTERNS
+from diagnose import diagnose_failures
 
 MIN_TEXT_CHARS = 200
 
@@ -118,16 +119,18 @@ def process_bank(conn, bank_name, pdf_path, period_date, verbose=True):
             print(f"    {metric_alias:40}{value:>18,.0f}  {sign}   {raw_text}")
 
     missing = {row[1] for row in lookup} - {r[1] for r in results}
+    reasons = {}
     if missing:
+        reasons = diagnose_failures(text, lookup, sorted(missing))
         print(f"\n{len(missing)} metrik gagal terbaca")
         for alias in sorted(missing):
-            print(f"    -{alias}")
+            print(f"    -{alias}  [{reasons[alias]}]")
 
     save_results(cur, bank_id, str(period_date), period_type, str(pdf_path), results)
     conn.commit()
     cur.close()
     print("Semua data tersimpan ke financial_data.")
-    return {"jumlah_metric" : len(results), "gagal" : sorted(missing)}
+    return {"jumlah_metric": len(results), "gagal": sorted(missing), "reasons": reasons}
 
 
 def main():
