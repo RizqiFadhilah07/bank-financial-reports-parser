@@ -10,7 +10,7 @@ from extractor import extract_metrics
 from number_utils import get_sign_type
 from config import TERM_VARIANTS
 from config import TERM_VARIANTS, SIGN_FLIP_PATTERNS
-from diagnose import diagnose_failures
+from diagnose import diagnose_failures, add_history_notes
 
 MIN_TEXT_CHARS = 200
 
@@ -122,6 +122,7 @@ def process_bank(conn, bank_name, pdf_path, period_date, verbose=True):
     reasons = {}
     if missing:
         reasons = diagnose_failures(text, lookup, sorted(missing))
+        reasons = add_history_notes(cur, bank_id, period_date, reasons)
         print(f"\n{len(missing)} metrik gagal terbaca")
         for alias in sorted(missing):
             print(f"    -{alias}  [{reasons[alias]}]")

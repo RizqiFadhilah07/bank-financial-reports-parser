@@ -21,3 +21,33 @@ def diagnose_failures(text, lookup, failed_aliases):
         else:
             reasons[alias] = "label persis tidak ditemukan di teks PDF"
     return reasons
+
+
+def add_history_notes(cur, bank_id, period_date, reasons):
+    period = str(period_date)
+    cur.execute(
+        """
+        SELECT metric_alias, MAX(period_date)
+        FROM financial_data
+        WHERE bank_id = %s AND period_date < %s AND metric_alias = ANY(%s)
+        GROUP BY metric_alias
+        """,
+        (bank_id, period, list(reasons))
+    )
+    last_seen = dict(cur.fetchall())
+
+    cur.execute(
+        "SELECT EXISTS (SELECT 1 FROM financial_data WHERE bank_id = %s AND period_date < %s)",
+        (bank_id, period)
+    )
+    has_history = cur.fetchone()[0]
+
+    for alias in reasons:
+        if alias in last_seen:
+            note = f"terbaca terakhir {last_seen[alias]}, kemungkinan format berubah"
+        elif has_history:
+            note = "belum pernah terbaca di bulan sebelumnya, kemungkinan memang tidak ada di dalam PDF"
+        else:
+            note = "tidak ada data bulan sebelumnya sebagai pembanding"
+        reasons[alias] += f"; {note}"
+    return reasons
