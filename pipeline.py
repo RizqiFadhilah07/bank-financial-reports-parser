@@ -27,7 +27,7 @@ def setup_logging():
     logger.addHandler(console_handler)
 
 
-def get_error(conn,report_id, message):
+def record_error(conn,report_id, message):
     cur = conn.cursor()
     try:
         cur.execute(
@@ -85,7 +85,7 @@ def main():
                 berhasil += 1
             except Exception as e:
                 conn.rollback()
-                get_error(conn, report_id, f"{type(e).__name__}: {e}")
+                record_error(conn, report_id, f"{type(e).__name__}: {e}")
                 gagal.append((report_id, bank_name, str(e)))
                 logger.exception("GAGAL: %s %s: %s", bank_name, period_date, e)
 
