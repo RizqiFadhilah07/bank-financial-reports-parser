@@ -119,18 +119,23 @@ def process_bank(conn, bank_name, pdf_path, period_date, verbose=True):
             print(f"    {metric_alias:40}{value:>18,.0f}  {sign}   {raw_text}")
 
     missing = {row[1] for row in lookup} - {r[1] for r in results}
-    reasons = {}
-    if missing:
-        reasons = diagnose_failures(text, lookup, sorted(missing))
-        reasons = add_history_notes(cur, bank_id, period_date, reasons)
-        print(f"\n{len(missing)} metrik gagal terbaca")
-        for alias in sorted(missing):
-            print(f"    -{alias}  [{reasons[alias]}]")
-
     save_results(cur, bank_id, str(period_date), period_type, str(pdf_path), results)
     conn.commit()
-    cur.close()
     print("Semua data tersimpan ke financial_data.")
+
+    reasons = {}
+    if missing:
+        try:
+            reasons = diagnose_failures(text, lookup, sorted(missing))
+            reasons = add_history_notes(cur, bank_id, period_date, reasons)
+        except Exception as e:
+            conn.rollback()
+            reasons = {}
+            print(f"Peringatan: diagnosa alasan gagal ({type(e).__name__}: {3})")
+        print(f"\n{len(missing)} metric gagal terbaca")
+    for alias in sorted(missing):
+            print(f"    -{alias}  [{reasons.get(alias, 'alasan tidak diketahui')}]")
+    cur.close()
     return {"jumlah_metric": len(results), "gagal": sorted(missing), "reasons": reasons}
 
 
