@@ -77,20 +77,22 @@ def main():
             logger.info("Memproses report_id=%s %s %s", report_id, bank_name, period_date)
             try:
                 result = process_bank(conn, bank_name, resolve_pdf(file_path), period_date, verbose=False)
-                if result["gagal"]:
-                    logger.warning("OK dengan %d metric yang gagal terbaca: %s %s",
-                                   len(result["gagal"]), bank_name, period_date)
-                    reasons = result.get("reasons", {})
-                    for alias in result["gagal"]:
-                        logger.warning("  - %s [%s]", alias, reasons.get(alias, "alasan tidak diketahui"))
-                else:
-                    logger.info("OK: %s %s (%d metric)", bank_name, period_date, result['jumlah_metric'])
-                berhasil += 1
             except Exception as e:
                 conn.rollback()
                 record_error(conn, report_id, f"{type(e).__name__}: {e}")
                 gagal.append((report_id, bank_name, str(e)))
                 logger.exception("GAGAL: %s %s: %s", bank_name, period_date, e)
+                continue
+
+            if result["gagal"]:
+                logger.warning("OK dengan %d metric yang gagal terbaca: %s %s",
+                               len(result["gagal"]), bank_name, period_date)
+                reasons = result.get("reasons", {})
+                for alias in result["gagal"]:
+                    logger.warning("  - %s [%s]", alias, reasons.get(alias, "alasan tidak diketahui"))
+            else:
+                logger.info("OK: %s %s (%d metric)", bank_name, period_date, result['jumlah_metric'])
+            berhasil += 1
 
         logger.info("Selesai. Berhasil: %d, Gagal: %d", berhasil, len(gagal))
         for report_id, bank_name, err in gagal:
