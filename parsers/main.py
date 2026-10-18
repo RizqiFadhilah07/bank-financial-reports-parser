@@ -101,7 +101,7 @@ def process_bank(conn, bank_name, pdf_path, period_date, verbose=True):
     text = clean_text(read_pages(pdf_path, bank_name))
     if len(text.strip()) < MIN_TEXT_CHARS:
         raise ValueError(
-            f"PDF tidak punya teks yang bisa terbaca"
+            f"PDF tidak punya teks yang bisa terbaca "
             f"({len(text.strip())} karakter), kemungkinan hasil scan: {pdf_path}"
         )
     raw_results = extract_metrics(text, lookup, bank_name)

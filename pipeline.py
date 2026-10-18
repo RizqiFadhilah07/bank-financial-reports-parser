@@ -70,7 +70,7 @@ def main():
     conn = get_connection()
     try:
         jobs = get_pending_reports(conn)
-        logger.info("%d laporan berstatus, 'downloaded'", len(jobs))
+        logger.info("%d laporan berstatus 'downloaded'", len(jobs))
         
         berhasil, gagal = 0, []
         for report_id, bank_name, file_path, period_date in jobs:
