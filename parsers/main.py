@@ -131,7 +131,7 @@ def process_bank(conn, bank_name, pdf_path, period_date, verbose=True):
         except Exception as e:
             conn.rollback()
             reasons = {}
-            print(f"Peringatan: diagnosa alasan gagal ({type(e).__name__}: {3})")
+            print(f"Peringatan: diagnosa alasan gagal ({type(e).__name__}: {e})")
         print(f"\n{len(missing)} metric gagal terbaca")
     for alias in sorted(missing):
             print(f"    -{alias}  [{reasons.get(alias, 'alasan tidak diketahui')}]")
