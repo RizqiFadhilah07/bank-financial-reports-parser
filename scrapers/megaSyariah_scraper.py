@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, unquote
 import os
 import re
 import time
@@ -97,16 +97,42 @@ class MegaSyariahScraper (BaseScraper):
 
         return reports
 
-    def wait_for_new_files(self, files_before, timeout=15):
-        seconds = 0
+    def expected_server_name(self, pdf_url):
+        return unquote(os.path.basename(urlparse(pdf_url).path))
 
+    def name_matches_url(self, server_name, expected):
+        name = server_name.lower()
+        stem, ext = os.path.splitext(expected.lower())
+        return re.fullmatch(rf"{re.escape(stem)}( \(\d+\))?{re.escape(ext)}", name) is not None
+
+    def wait_until_idle(self, timeout=30):
+        seconds = 0
         while seconds < timeout:
+            if not any(f.endswith(".crdownload") for f in os.listdir(self.download_dir)):
+                return True
+            time.sleep(1)
+            seconds += 1
+        print("PERINGATAN: masih ada unduhan (.crdownload) yang belum selesai")
+        return False
+
+
+    def wait_for_new_files(self, files_before, expected, timeout=15, max_wait=60):
+        seconds = 0
+        partial = expected + ".crdownload"
+
+        while seconds < max_wait:
             files_now = set(os.listdir(self.download_dir))
-            new_files = files_now - files_before
-            new_files = {f for f in new_files if not f.endswith(".crdownload") and not f.endswith(".tmp")}
+            new_files = {
+                f for f in (files_now - files_before)
+                if self.name_matches_url(f, expected)
+            }
 
             if new_files:
                 return new_files.pop()
+
+            downloading = any(f.lower() == partial.lower() for f in files_now)
+            if seconds >= timeout and not downloading:
+                break
 
             time.sleep(1)
             seconds += 1
@@ -114,24 +140,30 @@ class MegaSyariahScraper (BaseScraper):
         return None
 
     def download_pdf(self, pdf_url, filename):
+        self.wait_until_idle()
         files_before = set(os.listdir(self.download_dir))
+        expected = self.expected_server_name(pdf_url)
 
         print(f"Downloading : {filename}")
         self.driver.get(pdf_url)
 
-        downloaded_name = self.wait_for_new_files(files_before)
+        downloaded_name = self.wait_for_new_files(files_before, expected)
 
         if not downloaded_name:
-            print(f"FAILED: tidak ada file baru terdeteksi untuk {filename}\n")
+            ignored = set(os.listdir(self.download_dir)) - files_before
+            print(f"GAGAL: tidak ada file unduhan bernama '{expected}' untuk {filename}")
+            if ignored:
+                print(f"  File baru yang diabaikan karena nama tidak cocok: {sorted(ignored)}")
+            print()
             return False
 
         old_path = os.path.join(self.download_dir, downloaded_name)
-        new_path = os.path.join(self.download_dir,filename)
+        new_path = os.path.join(self.download_dir, filename)
         os.replace(old_path, new_path)
 
         print(f"Saved: {new_path}\n")
         return True
-
+    
     def run(self):
         soup = self.fetch_page()
         reports = self.find_reports(soup)
