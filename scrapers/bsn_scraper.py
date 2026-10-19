@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import os
@@ -32,6 +33,7 @@ class BsnScrapper (BaseScraper):
         options.add_experimental_option("prefs", prefs)
 
         self.driver = webdriver.Chrome(options=options)
+        self.driver.set_page_load_timeout(60)
         self.driver.get(self.page_url)
         time.sleep(5)
 
@@ -118,7 +120,10 @@ class BsnScrapper (BaseScraper):
         month = self.month_of(filename)
 
         print(f"Downloading : {filename}")
-        self.driver.get(pdf_url)
+        try:
+            self.driver.get(pdf_url)
+        except TimeoutException:
+            print("PERINGATAN: halaman unduhan melewati batas waktu, tetap menunggu file")
 
         downloaded_name = self.wait_for_new_file(files_before, month)
 
@@ -138,22 +143,24 @@ class BsnScrapper (BaseScraper):
         return True
 
     def run(self):
-        soup = self.fetch_page()
-        reports = self.find_reports(soup)
+        try:
+            soup = self.fetch_page()
+            reports = self.find_reports(soup)
 
-        unique_reports = {r["filename"]: r for r in reports}
-        reports = list(unique_reports.values())
+            unique_reports = {r["filename"]: r for r in reports}
+            reports = list(unique_reports.values())
 
-        print(f"Found {len(reports)} monthly reports\n")
-        for report in reports:
-            print(f"{report['filename']}")
-            print(f"URL : {report['pdf_url']}\n")
+            print(f"Found {len(reports)} monthly reports\n")
+            for report in reports:
+                print(f"{report['filename']}")
+                print(f"URL : {report['pdf_url']}\n")
 
-        for report in reports:
-            if self.download_pdf(report["pdf_url"], report["filename"]):
-                self.record_source(report["filename"], report["pdf_url"])
-
-        self.driver.quit()
+            for report in reports:
+                if self.download_pdf(report["pdf_url"], report["filename"]):
+                    self.record_source(report["filename"], report["pdf_url"])
+        finally:
+            if self.driver:
+                self.driver.quit()
 
 
 if __name__ == "__main__":

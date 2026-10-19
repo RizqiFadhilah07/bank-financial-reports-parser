@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, unquote
 import os
@@ -18,6 +19,7 @@ class MegaSyariahScraper (BaseScraper):
             base_url="https://www.megasyariah.co.id",
             page_url="https://www.megasyariah.co.id/id/tentang-kami/laporan-keuangan-perusahaan/laporan-bulanan"
         )
+        self.driver = None
 
 
     def fetch_page(self):
@@ -32,6 +34,7 @@ class MegaSyariahScraper (BaseScraper):
         options.add_experimental_option("prefs", prefs)
 
         self.driver = webdriver.Chrome(options=options)
+        self.driver.set_page_load_timeout(60)
         self.driver.get(self.page_url)
         time.sleep(5)
 
@@ -145,7 +148,10 @@ class MegaSyariahScraper (BaseScraper):
         expected = self.expected_server_name(pdf_url)
 
         print(f"Downloading : {filename}")
-        self.driver.get(pdf_url)
+        try:
+            self.driver.get(pdf_url)
+        except TimeoutException:
+            print("PERINGATAN: halaman unduhan melewati batas waktu, tetap menunggu file")
 
         downloaded_name = self.wait_for_new_files(files_before, expected)
 
@@ -165,22 +171,24 @@ class MegaSyariahScraper (BaseScraper):
         return True
     
     def run(self):
-        soup = self.fetch_page()
-        reports = self.find_reports(soup)
+        try:
+            soup = self.fetch_page()
+            reports = self.find_reports(soup)
 
-        unique_reports = {r["filename"]: r for r in reports}
-        reports = list(unique_reports.values())
+            unique_reports = {r["filename"]: r for r in reports}
+            reports = list(unique_reports.values())
 
-        print(f"Found {len(reports)} monthly reports\n")
-        for report in reports:
-            print(f"{report['filename']}")
-            print(f"URL : {report['pdf_url']}\n")
+            print(f"Found {len(reports)} monthly reports\n")
+            for report in reports:
+                print(f"{report['filename']}")
+                print(f"URL : {report['pdf_url']}\n")
 
-        for report in reports:
-            if self.download_pdf(report["pdf_url"], report["filename"]):
-                self.record_source(report["filename"], report["pdf_url"])
-
-        self.driver.quit()
+            for report in reports:
+                if self.download_pdf(report["pdf_url"], report["filename"]):
+                    self.record_source(report["filename"], report["pdf_url"])
+        finally:
+            if self.driver:
+                self.driver.quit()
 
 if __name__ == "__main__":
     scraper = MegaSyariahScraper()
