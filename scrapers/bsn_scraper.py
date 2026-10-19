@@ -96,13 +96,14 @@ class BsnScrapper (BaseScraper):
 
         if not downloaded_name:
             print(f"FAILED: tidak ada file baru terdeteksi untuk {filename}\n")
-            return
+            return False
 
         old_path = os.path.join(self.download_dir, downloaded_name)
         new_path = os.path.join(self.download_dir, filename)
         os.replace(old_path, new_path)
 
         print(f"Saved: {new_path}\n")
+        return True
 
     def run(self):
         soup = self.fetch_page()
@@ -117,7 +118,8 @@ class BsnScrapper (BaseScraper):
             print(f"URL : {report['pdf_url']}\n")
 
         for report in reports:
-            self.download_pdf(report["pdf_url"], report["filename"])
+            if self.download_pdf(report["pdf_url"], report["filename"]):
+                self.record_source(report["filename"], report["pdf_url"])
 
         self.driver.quit()
 
