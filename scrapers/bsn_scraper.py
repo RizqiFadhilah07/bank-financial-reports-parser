@@ -70,13 +70,39 @@ class BsnScrapper (BaseScraper):
 
         return reports
 
-    def wait_for_new_file(self, files_before, timeout=15):
+    def month_of(self, filename):
+        m = re.search(r"-([a-z]+)-\d{4}\.pdf$", filename)
+        return m.group(1) if m else None
+
+    def name_matches_month(self, server_name, month):
+        name = server_name.lower()
+        keys = {month}
+        keys |= {eng.lower() for eng, ind in self.ENGLISH_MONTH_MAP.items() if ind == month}
+        if any(k in name for k in keys):
+            return True
+        number = self.MONTH_MAP.index(month) + 1
+        return re.fullmatch(rf"{number}( \(\d+\))?\.pdf", name) is not None
+
+    def wait_until_idle(self, timeout=30):
+        seconds = 0
+        while seconds < timeout:
+            if not any(f.endswith(".crdownload") for f in os.listdir(self.download_dir)):
+                return True
+            time.sleep(1)
+            seconds += 1
+        print("PERINGATAN: masih ada unduhan (.crdownload) yang belum selesai")
+        return False
+
+    def wait_for_new_file(self, files_before, month, timeout=15):
         seconds = 0
 
         while seconds < timeout:
             files_now = set(os.listdir(self.download_dir))
             new_files = files_now - files_before
-            new_files = {f for f in new_files if not f.endswith(".crdownload") and not f.endswith(".tmp")}
+            new_files = {
+                f for f in new_files
+                if f.lower().endswith(".pdf") and self.name_matches_month(f, month)
+            }
 
             if new_files:
                 return new_files.pop()
@@ -87,15 +113,21 @@ class BsnScrapper (BaseScraper):
         return None
 
     def download_pdf(self, pdf_url, filename):
+        self.wait_until_idle()
         files_before = set(os.listdir(self.download_dir))
+        month = self.month_of(filename)
 
         print(f"Downloading : {filename}")
         self.driver.get(pdf_url)
 
-        downloaded_name = self.wait_for_new_file(files_before)
+        downloaded_name = self.wait_for_new_file(files_before, month)
 
         if not downloaded_name:
-            print(f"FAILED: tidak ada file baru terdeteksi untuk {filename}\n")
+            ignored = set(os.listdir(self.download_dir)) - files_before
+            print(f"GAGAL: tidak ada file unduhan yang cocok dengan bulan '{month}' untuk {filename}")
+            if ignored:
+                print(f"  File baru yang diabaikan karena nama tidak cocok: {sorted(ignored)}")
+            print()
             return False
 
         old_path = os.path.join(self.download_dir, downloaded_name)
