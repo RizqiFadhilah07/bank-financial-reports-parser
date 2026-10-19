@@ -5,6 +5,7 @@ from urllib.parse import unquote
 import requests
 import os
 import re
+import json
 
 class BaseScraper(ABC):
     HEADERS = {
@@ -94,6 +95,22 @@ class BaseScraper(ABC):
         return f"laporan-bulanan-{self.bank_code}-{month}-{year}.pdf"
 
 
+    def record_source(self, filename, pdf_url):
+        path = os.path.join(self.download_dir, "sources.json")
+        data = {}
+        if os.path.exists(path):
+            try:
+                with open(path, encoding= "utf-8") as f:
+                    data = json.load(f)
+            except (json.JSONDecodeError, OSError):
+                print("PERINGATAN: source.json tidak terbaca, dibuat ulang")
+        data[filename] = pdf_url
+        tmp_path = path + ".tmp"
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        os.replace(tmp_path, path)
+
+
     def download_pdf(self, pdf_url, filename):
         os.makedirs(self.download_dir, exist_ok =True)
         filepath = os.path.join(self.download_dir, filename)
@@ -105,14 +122,16 @@ class BaseScraper(ABC):
 
             if not response.content.startswith(b"%PDF"):
                 print(f"PERINGATAN: {filename} bukan file asli, skip")
-                return
+                return False
             
             with open(filepath, "wb") as file:
                 file.write(response.content)
 
             print(f"Saved : {filepath}\n")
+            return True
         except requests.exceptions.HTTPError as e:
             print(f"GAGAL download {filename}: {e}\n")
+            return False
 
 
 
@@ -138,5 +157,6 @@ class BaseScraper(ABC):
             print(f"URL : {report['pdf_url']}\n")
 
         for report in sorted(reports, key=lambda r: r["filename"], reverse=True):
-            self.download_pdf(report["pdf_url"], report["filename"])
+            if self.download_pdf(report["pdf_url"], report["filename"]):
+                self.record_source(report["filename"], report["pdf_url"])
     
