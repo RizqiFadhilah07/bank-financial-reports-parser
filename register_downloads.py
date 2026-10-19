@@ -3,6 +3,7 @@ import calendar
 import re
 from datetime import date
 from pathlib import Path
+import json
 
 DOWNLOADS = Path(__file__).resolve().parent / "downloads"
 
@@ -51,6 +52,18 @@ def scan(download_dir=DOWNLOADS):
                 found.append((folder.name, pdf.name, period))
 
     return found, unreadable
+
+
+def load_source(code, download_dir=DOWNLOADS):
+    path = Path(download_dir) / code / "sources.json"
+    if not path.exists():
+        return {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except(json.JSONDecodeError, OSError):
+        print(f"PERINGATAN: sources.json{code} tidak terbaca, source_url dikosongkan")
+        return {}
 
 def main():
     ap = argparse.ArgumentParser()
@@ -103,17 +116,18 @@ def main():
             continue
  
         s["baru"] += 1
+        source_url = load_source(code).get(filename)
         if args.apply:
             cur.execute(
                 """
                 INSERT INTO financial_reports
-                    (bank_id, period_date, period_type, file_path, status, downloaded_at)
-                VALUES (%s, %s, %s, %s, 'downloaded', now())
+                    (bank_id, period_date, period_type, file_path, source_url, status, downloaded_at)
+                VALUES (%s, %s, %s, %s, %s, 'downloaded', now())
                 ON CONFLICT (bank_id, period_date) DO NOTHING
                 """,
-                (bank_id, period, period_type, file_path),
+                (bank_id, period, period_type, file_path, source_url),
             )
-        print(f"  {'DAFTAR' if args.apply else 'AKAN DIDAFTAR':14} {code:12} {period}  {filename}")
+        print(f"  {'DAFTAR' if args.apply else 'AKAN DIDAFTAR':14} {code:12} {period}  {filename}  url={source_url}")
  
     if args.apply:
         conn.commit()
