@@ -6,6 +6,7 @@ import requests
 import os
 import re
 import json
+import time
 
 class BaseScraper(ABC):
     HEADERS = {
@@ -52,6 +53,8 @@ class BaseScraper(ABC):
 
     START_YEAR = 2026
 
+    TIMEOUT = (10,60)
+
     def __init__(self, bank_code, base_url, page_url):
         self.bank_code = bank_code
         self.base_url = base_url
@@ -72,7 +75,7 @@ class BaseScraper(ABC):
         )
 
     def fetch_page(self):
-        response = requests.get(self.page_url, headers = self.HEADERS)
+        response = requests.get(self.page_url, headers = self.HEADERS, timeout=self.TIMEOUT)
         response.raise_for_status()
         return BeautifulSoup(response.text, "lxml")
 
@@ -108,7 +111,13 @@ class BaseScraper(ABC):
         tmp_path = path + ".tmp"
         with open(tmp_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        os.replace(tmp_path, path)
+        for attempt in range(5):
+            try:
+                os.replace(tmp_path, path)
+                return
+            except PermissionError:
+                time.sleep(0.5)
+        print(f"PERINGATAN: gagal memperbarui sources.json untuk {filename}")
 
 
     def download_pdf(self, pdf_url, filename):
@@ -117,7 +126,7 @@ class BaseScraper(ABC):
 
         print(f"Downloading : {filename}")
         try:
-            response = requests.get(pdf_url, headers = self.HEADERS)
+            response = requests.get(pdf_url, headers = self.HEADERS, timeout=self.TIMEOUT)
             response.raise_for_status()
 
             if not response.content.startswith(b"%PDF"):
@@ -129,7 +138,7 @@ class BaseScraper(ABC):
 
             print(f"Saved : {filepath}\n")
             return True
-        except requests.exceptions.HTTPError as e:
+        except requests.exceptions.RequestException as e:
             print(f"GAGAL download {filename}: {e}\n")
             return False
 

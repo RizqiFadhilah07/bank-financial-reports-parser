@@ -54,7 +54,7 @@ class AladinScraper(BaseScraper):
             "query": json.dumps(query),
             "ecs_ajax_settings": json.dumps(ecs_ajax_settings),
         }
-        response = requests.post(self.AJAX_URL, data=payload, headers=self.HEADERS)
+        response = requests.post(self.AJAX_URL, data=payload, headers=self.HEADERS, timeout=self.TIMEOUT)
         response.raise_for_status()
 
         return BeautifulSoup(response.text, "lxml")
