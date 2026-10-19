@@ -95,19 +95,22 @@ class BsnScrapper (BaseScraper):
         print("PERINGATAN: masih ada unduhan (.crdownload) yang belum selesai")
         return False
 
-    def wait_for_new_file(self, files_before, month, timeout=15):
+    def wait_for_new_file(self, files_before, month, timeout=15, max_wait=60):
         seconds = 0
 
-        while seconds < timeout:
+        while seconds < max_wait:
             files_now = set(os.listdir(self.download_dir))
-            new_files = files_now - files_before
             new_files = {
-                f for f in new_files
+                f for f in (files_now - files_before)
                 if f.lower().endswith(".pdf") and self.name_matches_month(f, month)
             }
 
             if new_files:
                 return new_files.pop()
+
+            downloading = any(f.lower().endswith(".crdownload") for f in files_now - files_before)
+            if seconds >= timeout and not downloading:
+                break
 
             time.sleep(1)
             seconds += 1
