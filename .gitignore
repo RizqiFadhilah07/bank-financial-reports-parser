@@ -12,3 +12,5 @@ dump_text.py
 debug_one.py
 trace_one.py
 downloads_backup/
+backfill_source_url.py
+test_diag_error.py
