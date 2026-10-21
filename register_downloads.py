@@ -72,7 +72,7 @@ def main():
     ap.add_argument("--bank", help="filter satu bank, contoh: BCA")
     args = ap.parse_args()
  
-    from db import get_connection   # impor di sini agar fungsi di atas bisa diuji tanpa DB
+    from db import get_connection
  
     found, unreadable = scan()
     if args.month:
@@ -102,11 +102,10 @@ def main():
             tanpa_bank.add(name)
             continue
         bank_id, period_type = banks[name]
-        # format sama dengan data lama: relatif terhadap folder parsers/
         file_path = f"../downloads/{code}/{filename}"
  
         cur.execute(
-            "SELECT status FROM financial_reports WHERE bank_id = %s AND period_date = %s",
+            "SELECT status FROM financial_reports WHERE bank_id = ? AND period_date = ?",
             (bank_id, period),
         )
         existing = cur.fetchone()
@@ -122,8 +121,7 @@ def main():
                 """
                 INSERT INTO financial_reports
                     (bank_id, period_date, period_type, file_path, source_url, status, downloaded_at)
-                VALUES (%s, %s, %s, %s, %s, 'downloaded', now())
-                ON CONFLICT (bank_id, period_date) DO NOTHING
+                VALUES (?, ?, ?, ?, ?, 'downloaded', SYSDATETIMEOFFSET())
                 """,
                 (bank_id, period, period_type, file_path, source_url),
             )
