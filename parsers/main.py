@@ -34,37 +34,65 @@ def load_lookup(cur, bank_id):
 
 def save_results(cur, bank_id, period_date, period_type, pdf_path, results):
     cur.execute(
-        """
-        INSERT INTO financial_reports (bank_id, period_date, period_type, file_path, status, downloaded_at)
-        VALUES (%s, %s, %s, %s, 'downloaded', now())
-        ON CONFLICT (bank_id, period_date) DO UPDATE
-            SET file_path = EXCLUDED.file_path, status = 'downloaded', downloaded_at = now()
-        RETURNING report_id
-        """,
-        (bank_id, period_date, period_type, pdf_path)
+        "SELECT report_id FROM financial_reports WHERE bank_id = ? AND period_date = ?",
+        (bank_id, period_date)
     )
-    report_id = cur.fetchone()[0]
-    print(f"\nreport_id: {report_id}")
+    row = cur.fetchone()
 
-    for metric_order, metric_alias, value, raw_text, sign in results:
+    if row is None:
         cur.execute(
             """
-            INSERT INTO financial_data (report_id, bank_id, period_date, metric_alias, value, sign_type, raw_text)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (report_id, metric_alias) DO UPDATE
-                SET value = EXCLUDED.value,
-                    sign_type = EXCLUDED.sign_type,
-                    raw_text = EXCLUDED.raw_text,
-                    updated_at = now()
+            INSERT INTO financial_reports (bank_id, period_date, period_type, file_path, status, downloaded_at)
+            VALUES (?, ?, ?, ?, 'downloaded', SYSDATETIMEOFFSET())
             """,
-            (report_id, bank_id, period_date, metric_alias, value, sign, raw_text)
+            (bank_id, period_date, period_type, pdf_path)
         )
+        cur.execute(
+            "SELECT report_id FROM financial_reports WHERE bank_id = ? AND period_date = ?",
+            (bank_id, period_date)
+        )
+        row = cur.fetchone()
+
+    else:
+        cur.execute(
+            """
+            UPDATE financial_reports
+            SET file_path = ?, status = 'downloaded', downloaded_at = SYSDATETIMEOFFSET()
+            WHERE report_id = ?
+            """,
+            (pdf_path, row[0])
+        )
+    report_id = row[0]
+    print(f"\nreport_id: {report_id}")
 
     cur.execute(
-        "UPDATE financial_reports SET status = 'parsed', parsed_at = now() WHERE report_id = %s",
+        "SELECT metric_alias FROM financial_data WHERE report_id = ?", (report_id,)
+    )
+    existing = {r[0] for r in cur.fetchall()}
+
+    for metric_order, metric_alias, value, raw_text, sign in results:
+        if metric_alias in existing:
+            cur.execute(
+                """
+                UPDATE financial_data
+                SET value = ?, sign_type = ?, raw_text = ?
+                WHERE report_id = ? AND metric_alias = ?
+                """,
+                (value, sign, raw_text, report_id, metric_alias)
+            )
+        else:
+            cur.execute(
+                """
+                INSERT INTO financial_data (report_id, bank_id, period_date, metric_alias, value, sign_type, raw_text)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (report_id, bank_id, period_date, metric_alias, value, sign, raw_text)
+            )
+
+    cur.execute(
+        "UPDATE financial_reports SET status = 'parsed', parsed_at = SYSDATETIMEOFFSET() WHERE report_id = ?",
         (report_id,)
     )
-
 
 def add_term_variants(lookup, bank_name):
     variants = TERM_VARIANTS.get(bank_name, {})
