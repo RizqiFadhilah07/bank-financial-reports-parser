@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+import re
 from datetime import date
 from pathlib import Path
 
@@ -29,11 +30,11 @@ WITH n AS (
         MAX(CASE WHEN metric_alias = 'total_assets' THEN value END) as aset,
         MAX(CASE WHEN metric_alias = 'total_liabilities_and_equity' THEN value END) as pasiva
     FROM financial_data
-    WHERE (%(p)s IS NULL OR period_date = %(p)s)
+    WHERE (? IS NULL OR period_date = ?)
     GROUP BY report_id, bank_id, period_date
 )
 SELECT b.bank_name, n.period_date,
-    'aset=' || COALESCE(n.aset::text, 'NULL') || ' pasiva=' || COALESCE(n.pasiva::text, 'NULL')
+    'aset=' + COALESCE(CAST(n.aset AS varchar(40)), 'NULL') + ' pasiva=' + COALESCE(CAST(n.pasiva AS varchar(40)), 'NULL')
 FROM n JOIN banks b ON b.bank_id = n.bank_id
 WHERE n.aset IS NULL OR n.pasiva IS NULL OR n.aset <> n.pasiva
 ORDER BY n.period_date, b.bank_name
@@ -49,7 +50,7 @@ WITH s AS (
     MAX(CASE WHEN metric_alias = 'deferred_tax_income_expense' THEN {SIGNED} END) AS tangguhan,
     MAX(CASE WHEN metric_alias = 'net_profit' THEN {SIGNED} END) AS laba
   FROM financial_data
-  WHERE (%(p)s IS NULL OR period_date = %(p)s)
+  WHERE (? IS NULL OR period_date = ?)
   GROUP BY report_id, bank_id, period_date
 ), t AS (
   SELECT *, CASE WHEN COALESCE(pajak, 0) <> 0 THEN pajak
@@ -57,32 +58,37 @@ WITH s AS (
   FROM s
 )
 SELECT b.bank_name, t.period_date,
-       'pbt=' || COALESCE(t.pbt::text, 'NULL') || ' pajak=' || t.pajak_total::text
-       || ' laba=' || COALESCE(t.laba::text, 'NULL')
+        'pbt=' + COALESCE(CAST(t.pbt AS varchar(40)), 'NULL') + ' pajak=' + CAST(t.pajak_total AS varchar(40))
+       + ' laba=' + COALESCE(CAST(t.laba AS varchar(40)), 'NULL')
 FROM t JOIN banks b ON b.bank_id = t.bank_id
 WHERE t.pbt IS NULL OR t.laba IS NULL OR t.pbt + t.pajak_total <> t.laba
 ORDER BY t.period_date, b.bank_name
 """
 
 SQL_LABEL_LEAKING = """
-    SELECT b.bank_name, fd.period_date, fd.metric_alias || ' | ' || fd.raw_text
+    SELECT b.bank_name, fd.period_date, fd.metric_alias, fd.raw_text
     FROM financial_data fd JOIN banks b ON b.bank_id = fd.bank_id
     WHERE fd.metric_alias IN ('other_commitment_receivables','other_commitment_obligations',
         'other_accrued_income','other_contingent_receivables','other_contingent_obligations',
         'other_non_reclassifiable_oci','other_reclassifiable_oci',
         'other_additional_paid_in_capital','other_fund_distribution_income')
-    AND fd.raw_text ~ '[A-Z]{5,}'
-    AND (%(p)s IS NULL OR fd.period_date = %(p)s)
+    AND (? IS NULL OR fd.period_date = ?)
     ORDER BY fd.period_date, b.bank_name
 """
+
+LEAKING_RE = re.compile(r"[A-Z]{5,}")
+
+def leaking_label(rows):
+    return [(b, p, f"{a} | {t}") for b, p, a, t in rows
+            if t is not None and LEAKING_RE.search(t)]
 
 SQL_ELIGIBLE_METRIC = """
     SELECT b.bank_name, fr.period_date, m.metric_alias
     FROM financial_reports fr
     JOIN banks b ON b.bank_id = fr.bank_id
-    JOIN bank_metric_mapping m ON m.bank_id = fr.bank_id AND m.is_applicable = TRUE
+    JOIN bank_metric_mapping m ON m.bank_id = fr.bank_id AND m.is_applicable = 1
     WHERE fr.status = 'parsed'
-    AND (%(p)s IS NULL OR fr.period_date = %(p)s)
+    AND (? IS NULL OR fr.period_date = ?)
     AND NOT EXISTS (SELECT 1 FROM financial_data fd
                     WHERE fd.report_id = fr.report_id AND fd.metric_alias = m.metric_alias)
     ORDER BY b.bank_name, fr.period_date, m.metric_alias
@@ -92,7 +98,7 @@ SQL_EMPTY_REPORT = """
     SELECT b.bank_name, fr.period_date, fr.status
     FROM financial_reports fr JOIN banks b ON b.bank_id = fr.bank_id
     WHERE NOT EXISTS (SELECT 1 FROM financial_data fd WHERE fd.report_id = fr.report_id)
-    AND (%(p)s IS NULL OR fr.period_date = %(p)s)
+    AND (? IS NULL OR fr.period_date = ?)
     ORDER BY fr.period_date, b.bank_name
 """
 
@@ -111,7 +117,7 @@ def setup_logging():
     logger.addHandler(ch)
 
 def fetch(cur, sql, month):
-    cur.execute(sql, {"p": month})
+    cur.execute(sql, (month,) * sql.count("?"))
     return cur.fetchall()
 
 def not_eligible_metric(rows):
@@ -134,7 +140,7 @@ def main():
         rules = [
             ("neraca", fetch(cur, SQL_NERACA, args.month)),
             ("laba", fetch(cur, SQL_LABA, args.month)),
-            ("leaking_label", fetch(cur, SQL_LABEL_LEAKING, args.month)),
+            ("leaking_label", leaking_label(fetch(cur, SQL_LABEL_LEAKING, args.month))),
             ("metric_hilang", not_eligible_metric(fetch(cur, SQL_ELIGIBLE_METRIC, args.month))),
             ("laporan_kosong", empty_report(fetch(cur, SQL_EMPTY_REPORT, args.month))),
         ]
