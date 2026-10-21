@@ -31,7 +31,7 @@ def record_error(conn,report_id, message):
     cur = conn.cursor()
     try:
         cur.execute(
-            "UPDATE financial_reports SET error_message = %s WHERE report_id = %s",
+            "UPDATE financial_reports SET error_message = ? WHERE report_id = ?",
             (message, report_id)
         )
         conn.commit()
