@@ -24,20 +24,27 @@ def diagnose_failures(text, lookup, failed_aliases):
 
 
 def add_history_notes(cur, bank_id, period_date, reasons):
+    if not reasons:
+        return reasons
     period = str(period_date)
+    placeholders = ",".join("?" * len(reasons))
     cur.execute(
-        """
+        f"""
         SELECT metric_alias, MAX(period_date)
         FROM financial_data
-        WHERE bank_id = %s AND period_date < %s AND metric_alias = ANY(%s)
+        WHERE bank_id = ? AND period_date < ? AND metric_alias IN ({placeholders})
         GROUP BY metric_alias
         """,
-        (bank_id, period, list(reasons))
+        (bank_id, period, *reasons)
     )
-    last_seen = dict(cur.fetchall())
+    last_seen = {alias: last_date for alias, last_date in cur.fetchall()}
 
     cur.execute(
-        "SELECT EXISTS (SELECT 1 FROM financial_data WHERE bank_id = %s AND period_date < %s)",
+        """
+        SELECT CASE WHEN EXISTS (
+            SELECT 1 FROM financial_data WHERE bank_id = ? AND period_date < ?
+        ) THEN 1 ELSE 0 END
+        """,
         (bank_id, period)
     )
     has_history = cur.fetchone()[0]
