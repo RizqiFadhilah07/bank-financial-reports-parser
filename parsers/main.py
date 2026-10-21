@@ -22,7 +22,7 @@ def load_lookup(cur, bank_id):
                mm.metric_order
         FROM bank_metric_mapping bmm
         JOIN master_metrics mm ON mm.metric_alias = bmm.metric_alias
-        WHERE bmm.bank_id = %s AND bmm.is_applicable = TRUE
+        WHERE bmm.bank_id = ? AND bmm.is_applicable = 1
         ORDER BY mm.metric_order ASC
         """,
         (bank_id,)
@@ -86,7 +86,7 @@ def apply_sign_convention(bank_name, alias, raw_text, sign):
 def process_bank(conn, bank_name, pdf_path, period_date, verbose=True):
     cur = conn.cursor()
 
-    cur.execute("SELECT bank_id, period_type FROM banks WHERE bank_name = %s", (bank_name,))
+    cur.execute("SELECT bank_id, period_type FROM banks WHERE bank_name = ?", (bank_name,))
     result = cur.fetchone()
     if result is None:
         raise ValueError(f"Bank '{bank_name}' tidak ditemukan di tabel banks.")
