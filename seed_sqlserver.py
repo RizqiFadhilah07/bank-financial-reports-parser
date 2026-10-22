@@ -24,6 +24,9 @@ def main():
     conn = get_connection()
     cur = conn.cursor()
 
+    cur.execute("SELECT DB_NAME(), SUSER_SNAME()")
+    print("Terhubung ke database: %s | login: %s" % tuple(cur.fetchone()))
+
     for table in TABLES:
         n = count_rows(cur, table)
         print(f"{table:22} JSON={expected[table]:5} database={n:5}")
