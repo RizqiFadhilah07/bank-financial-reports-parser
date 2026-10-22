@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pyodbc
 
-SEED_FILE = Path(__file__).resolve().parent / "baseline" / "seed_export.json"
+SEED_FILE = Path(__file__).resolve().parent / "seed" / "seed_export.json"
 TABLES = ["master_metrics", "banks", "bank_metric_mapping"]
 
 def connect(server, database):
