@@ -4,18 +4,10 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-import pyodbc
+from db import get_connection
 
 SEED_FILE = Path(__file__).resolve().parent / "seed" / "seed_export.json"
 TABLES = ["master_metrics", "banks", "bank_metric_mapping"]
-
-def connect(server, database):
-    conn_str = (
-        "DRIVER={ODBC Driver 17 for SQL Server};"
-        f"SERVER={server};DATABASE={database};"
-        "Trusted_Connection=yes;"
-    )
-    return pyodbc.connect(conn_str)
 
 def count_rows(cur, table):
     cur.execute(f"SELECT COUNT(*) FROM dbo.{table}")
@@ -23,19 +15,13 @@ def count_rows(cur, table):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--server", default="localhost")
-    ap.add_argument("--database", default="bank_data_pipeline_test")
     ap.add_argument("--apply", action="store_true", help="tulis ke database")
     args = ap.parse_args()
-
-    if not args.database.endswith("_test"):
-        print(f"DITOLAK: database '{args.database}' bukan database uji (harus berakhiran dengan _test).")
-        return 1
 
     data = json.loads(SEED_FILE.read_text(encoding="utf-8"))
     expected = {t:len(data[t]) for t in TABLES}
 
-    conn = connect(args.server, args.database)
+    conn = get_connection()
     cur = conn.cursor()
 
     for table in TABLES:
