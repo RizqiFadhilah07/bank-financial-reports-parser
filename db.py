@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 def _kutip(nilai):
-    return "{" + nilai.replace("}", "}}" + "}")
+    return "{" + nilai.replace("}", "}}") + "}"
 
 
 def build_connection_string():
