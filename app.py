@@ -1,5 +1,5 @@
 import streamlit as st
-
+import pandas as pd
 from data_access import get_banks, get_reports, get_metrics
 
 st.set_page_config(page_title="Bank Reports", layout="wide")
@@ -20,5 +20,6 @@ selected_period = st.selectbox("Pilih periode", periods)
 st.write("Periode terpilih:", selected_period)
 
 metrics_df = get_metrics(selected_bank, selected_period)
+metrics_df["value"] = pd.to_numeric(metrics_df["value"])
 st.write("Jumlah baris:", len(metrics_df))
 st.dataframe(metrics_df)
