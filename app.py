@@ -12,6 +12,10 @@ def load_banks():
 def load_reports():
     return get_reports()
 
+@st.cache_data
+def load_metrics(bank_name, period_date):
+    return get_metrics(bank_name, period_date)
+
 st.title("Bank Financial Reports")
 
 banks_df = load_banks()
@@ -27,7 +31,7 @@ periods = bank_reports["period_date"].tolist()
 selected_period = st.selectbox("Pilih periode", periods)
 st.write("Periode terpilih:", selected_period)
 
-metrics_df = get_metrics(selected_bank, selected_period)
+metrics_df = load_metrics(selected_bank, selected_period)
 metrics_df["value"] = pd.to_numeric(metrics_df["value"])
 st.write("Jumlah baris:", len(metrics_df))
 st.dataframe(metrics_df)
