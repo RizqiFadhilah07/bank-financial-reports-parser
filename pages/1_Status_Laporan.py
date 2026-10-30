@@ -14,6 +14,8 @@ def load_findings():
 def color_status(value):
     if value == "failed":
         return "background-color: #8b2e2e"
+    if value == "downloaded":
+        return "background-color: #1f6f43"
     return ""
 
 st.title("Status Laporan")
@@ -21,6 +23,7 @@ st.title("Status Laporan")
 reports_df = load_reports()
 status_pivot = reports_df.pivot(index="bank_name", columns="period_date", values="status")
 st.dataframe(status_pivot.style.map(color_status), width="stretch")
+st.caption("Merah: laporan gagal. Hijau: laporan sudah diunduh tetapi belum diproses.")
 
 st.subheader("Laporan Bermasalah")
 problem_df = reports_df[reports_df["status"] != "parsed"]
