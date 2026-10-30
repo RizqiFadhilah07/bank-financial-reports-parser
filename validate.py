@@ -128,6 +128,15 @@ def not_eligible_metric(rows):
             result.append((bank, period, alias))
     return result
 
+def run_rules(cur, month):
+    return [
+        ("neraca", fetch(cur, SQL_NERACA, month)),
+        ("laba", fetch(cur, SQL_LABA, month)),
+        ("leaking_label", leaking_label(fetch(cur, SQL_LABEL_LEAKING, month))),
+        ("metric_hilang", not_eligible_metric(fetch(cur, SQL_ELIGIBLE_METRIC, month))),
+        ("laporan_kosong", empty_report(fetch(cur, SQL_EMPTY_REPORT, month))),
+    ]
+
 def main():
     ap = argparse.ArgumentParser(description="Validasi data dari financial_data")
     ap.add_argument("--month", help="filter satu periode, contoh : 2026-08-31")
@@ -137,13 +146,7 @@ def main():
     conn = get_connection()
     try:
         cur = conn.cursor()
-        rules = [
-            ("neraca", fetch(cur, SQL_NERACA, args.month)),
-            ("laba", fetch(cur, SQL_LABA, args.month)),
-            ("leaking_label", leaking_label(fetch(cur, SQL_LABEL_LEAKING, args.month))),
-            ("metric_hilang", not_eligible_metric(fetch(cur, SQL_ELIGIBLE_METRIC, args.month))),
-            ("laporan_kosong", empty_report(fetch(cur, SQL_EMPTY_REPORT, args.month))),
-        ]
+        rules = run_rules(cur, args.month)
         cur.close()
     finally:
         conn.close()
