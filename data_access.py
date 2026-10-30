@@ -47,3 +47,21 @@ def get_metrics(bank_name, period_date):
         """,
         (bank_name, period_date),
     )
+
+
+def get_findings(month=None):
+    import validate
+
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        rules = validate.run_rules(cur,month)
+        cur.close()
+    finally:
+        conn.close()
+
+    rows = []
+    for rule, findings in rules:
+        for bank, period, detail in findings:
+            rows.append((rule, bank, period, detail))
+    return pd.DataFrame(rows, columns=["rule", "bank_name", "period_date", "detail"])
