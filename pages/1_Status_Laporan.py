@@ -1,11 +1,15 @@
 import streamlit as st
-from data_access import get_reports
+from data_access import get_reports, get_findings
 
 st.set_page_config(page_title="Status Laporan", layout="wide")
 
 @st.cache_data
 def load_reports():
     return get_reports()
+
+@st.cache_data
+def load_findings():
+    return get_findings()
 
 def color_status(value):
     if value == "failed":
@@ -28,3 +32,10 @@ else:
         hide_index=True,
         width="stretch",
     )
+
+st.subheader("Temuan Validasi")
+findings_df = load_findings()
+if findings_df.empty:
+    st.success("Semua aturan validasi lolos, tidak ada temuan.")
+else:
+    st.dataframe(findings_df, hide_index=True, width="stretch")
