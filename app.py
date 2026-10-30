@@ -49,4 +49,11 @@ if keyword:
     )
     metrics_df = metrics_df[mask]
 st.write("Jumlah baris:", len(metrics_df))
-st.dataframe(metrics_df, hide_index=True, width="stretch")
+st.dataframe(
+    metrics_df,
+    hide_index=True,
+    width="stretch",
+    column_config={
+        "value": st.column_config.NumberColumn("value", format="localized"),
+    },
+)
