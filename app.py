@@ -37,5 +37,9 @@ categories = ["Semua"] + sorted(metrics_df["category"].unique().tolist())
 selected_category = st.selectbox("Pilih kategori", categories)
 if selected_category != "Semua":
     metrics_df = metrics_df[metrics_df["category"] == selected_category]
+sub_categories = ["Semua"] + sorted(metrics_df["sub_category"].unique().tolist())
+selected_sub_category = st.selectbox("Pilih sub-kategori", sub_categories)
+if selected_sub_category != "Semua":
+    metrics_df = metrics_df[metrics_df["sub_category"] == selected_sub_category]
 st.write("Jumlah baris:", len(metrics_df))
 st.dataframe(metrics_df)
