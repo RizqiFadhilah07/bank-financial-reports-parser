@@ -33,5 +33,9 @@ st.write("Periode terpilih:", selected_period)
 
 metrics_df = load_metrics(selected_bank, selected_period)
 metrics_df["value"] = pd.to_numeric(metrics_df["value"])
+categories = ["Semua"] + sorted(metrics_df["category"].unique().tolist())
+selected_category = st.selectbox("Pilih kategori", categories)
+if selected_category != "Semua":
+    metrics_df = metrics_df[metrics_df["category"] == selected_category]
 st.write("Jumlah baris:", len(metrics_df))
 st.dataframe(metrics_df)
