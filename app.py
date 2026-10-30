@@ -54,6 +54,13 @@ st.dataframe(
     hide_index=True,
     width="stretch",
     column_config={
-        "value": st.column_config.NumberColumn("value", format="localized"),
+        "category": st.column_config.TextColumn("Kategori"),
+        "sub_category": st.column_config.TextColumn("Sub-kategori"),
+        "metric_order": st.column_config.NumberColumn("No. urut"),
+        "metric_alias": st.column_config.TextColumn("Alias metrik"),
+        "metric_name": st.column_config.TextColumn("Nama metrik"),
+        "value": st.column_config.NumberColumn("Nilai (juta Rp)", format="localized"),
+        "sign_type": st.column_config.TextColumn("Tanda"),
+        "raw_text": st.column_config.TextColumn("Teks asli"),
     },
 )
