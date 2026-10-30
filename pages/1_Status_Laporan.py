@@ -38,4 +38,14 @@ findings_df = load_findings()
 if findings_df.empty:
     st.success("Semua aturan validasi lolos, tidak ada temuan.")
 else:
-    st.dataframe(findings_df, hide_index=True, width="stretch")
+    st.dataframe(
+        findings_df,
+        hide_index=True,
+        width="stretch",
+        column_config={
+            "rule": st.column_config.TextColumn("Aturan"),
+            "bank_name": st.column_config.TextColumn("Bank"),
+                        "period_date": st.column_config.DateColumn("Periode", format="YYYY-MM-DD"),
+            "detail": st.column_config.TextColumn("Detail"),
+        },
+    )
