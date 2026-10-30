@@ -21,27 +21,27 @@ st.title("Bank Financial Reports")
 banks_df = load_banks()
 bank_names = banks_df['bank_name'].tolist()
 
-selected_bank = st.selectbox("Pilih bank", bank_names)
+selected_bank = st.sidebar.selectbox("Pilih bank", bank_names)
 st.write("Bank terpilih: ", selected_bank)
 
 reports_df = load_reports()
 bank_reports = reports_df[reports_df["bank_name"] == selected_bank]
 periods = bank_reports["period_date"].tolist()
 
-selected_period = st.selectbox("Pilih periode", periods)
+selected_period = st.sidebar.selectbox("Pilih periode", periods)
 st.write("Periode terpilih:", selected_period)
 
 metrics_df = load_metrics(selected_bank, selected_period)
 metrics_df["value"] = pd.to_numeric(metrics_df["value"])
 categories = ["Semua"] + sorted(metrics_df["category"].unique().tolist())
-selected_category = st.selectbox("Pilih kategori", categories)
+selected_category = st.sidebar.selectbox("Pilih kategori", categories)
 if selected_category != "Semua":
     metrics_df = metrics_df[metrics_df["category"] == selected_category]
 sub_categories = ["Semua"] + sorted(metrics_df["sub_category"].unique().tolist())
-selected_sub_category = st.selectbox("Pilih sub-kategori", sub_categories)
+selected_sub_category = st.sidebar.selectbox("Pilih sub-kategori", sub_categories)
 if selected_sub_category != "Semua":
     metrics_df = metrics_df[metrics_df["sub_category"] == selected_sub_category]
-keyword = st.text_input("Cari metrik")
+keyword = st.sidebar.text_input("Cari metrik")
 if keyword:
     mask = (
         metrics_df["metric_name"].str.contains(keyword, case=False, na=False, regex=False) | 
