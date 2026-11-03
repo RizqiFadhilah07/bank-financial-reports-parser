@@ -40,6 +40,7 @@ def get_reports():
     )
     df["error_message"] = df["error_message"].map(_samarkan_path)
     return df
+
 def get_metrics(bank_name, period_date):
     return _query_df(
         """
