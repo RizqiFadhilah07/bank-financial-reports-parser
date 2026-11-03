@@ -38,7 +38,7 @@ if "hasil" in st.session_state:
     hasil = st.session_state["hasil"]
     if hasil["nama_cocok"] is False:
         st.warning(
-            "Nama bank yang anda pilih tidak ditemukan di isi PDF."
+            "Nama bank yang Anda pilih tidak ditemukan di isi PDF. "
             "Pastikan bank dan file yang diunggah sudah sesuai."
         )
     df = pd.DataFrame(
