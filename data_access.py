@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 
 from db import get_connection
 
@@ -13,6 +14,11 @@ def _query_df(sql, params=()):
     finally:
         conn.close()
 
+def _samarkan_path(teks):
+    if teks is None:
+        return teks
+    return re.sub(r"[A-Za-z]:\\(?:[^\\\s]+\\)*([^\\\s]+)", r"\1", teks)
+
 def get_banks():
     return _query_df(
         """
@@ -23,7 +29,7 @@ def get_banks():
     )
 
 def get_reports():
-    return _query_df(
+    df = _query_df(
         """
         SELECT r.report_id, b.bank_name, r.period_date, r.status, r.error_message
         FROM dbo.financial_reports r
@@ -32,7 +38,8 @@ def get_reports():
         ORDER BY b.bank_name, r.period_date
         """
     )
-
+    df["error_message"] = df["error_message"].map(_samarkan_path)
+    return df
 def get_metrics(bank_name, period_date):
     return _query_df(
         """
