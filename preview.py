@@ -1,4 +1,5 @@
 import sys
+import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -9,6 +10,30 @@ if str(PARSERS) not in sys.path:
 from main import (load_lookup, add_term_variants, apply_sign_convention,
                   clean_text, read_pages, extract_metrics, get_sign_type,
                   MIN_TEXT_CHARS)
+
+KATA_KUNCI_BANK = {
+    "Aladin": ("bankaladinsyariah", []),
+    "Bank Mega": ("bankmega", ["megasyariah"]),
+    "Bank Mega Syariah": ("bankmegasyariah", []),
+    "Bank Syariah Nasional": ("banksyariahnasional", []),
+    "BCA": ("bankcentralasia", []),
+    "BNI": None,
+    "BSI": ("banksyariahindonesia", []),
+    "BTN": ("banktabungannegara", []),
+    "BTPN Syariah": ("btpnsyariah", []),
+    "CIMB Niaga": ("bankcimbniaga", []),
+    "Mandiri": ("bankmandiri", []),
+    "OCBC": ("bankocbcnisp", []),
+    "UOB": None,
+}
+
+def cek_nama_bank(bank_name, text):
+    aturan = KATA_KUNCI_BANK.get(bank_name)
+    if aturan is None:
+        return None
+    wajib, larangan = aturan
+    t = re.sub(r"[^a-z0-9]", "", text.lower())
+    return wajib in t and not any(k in t for k in larangan)
 
 def extract_preview(conn, bank_name, pdf_file):
     cur = conn.cursor()
@@ -37,4 +62,5 @@ def extract_preview(conn, bank_name, pdf_file):
     ]
     results.sort(key=lambda r: r[0])
     missing = sorted({row[1] for row in lookup} - {r[1] for r in results})
-    return {"results": results, "missing": missing}
+    return {"results": results, "missing": missing,
+            "nama_cocok": cek_nama_bank(bank_name, text)}
