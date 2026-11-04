@@ -8,3 +8,4 @@ python-dotenv==1.2.4
 requests==2.32.3
 selenium==4.49.0
 streamlit==1.65.0
+pytest==9.2.0
