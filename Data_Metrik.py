@@ -16,6 +16,12 @@ def load_reports():
 def load_metrics(bank_name, period_date):
     return get_metrics(bank_name, period_date)
 
+BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
+         "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+
+def format_periode(d):
+    return f"{BULAN[d.month - 1]} {d.year}"
+
 st.title("Bank Financial Reports")
 
 banks_df = load_banks()
@@ -26,9 +32,9 @@ st.write("Bank terpilih:", selected_bank)
 
 reports_df = load_reports()
 bank_reports = reports_df[reports_df["bank_name"] == selected_bank]
-periods = bank_reports["period_date"].tolist()
+periods = sorted(bank_reports["period_date"], reverse=True)
 
-selected_period = st.sidebar.selectbox("Pilih periode", periods)
+selected_period = st.sidebar.selectbox("Pilih periode", periods, format_func=format_periode)
 st.write("Periode terpilih:", selected_period)
 
 metrics_df = load_metrics(selected_bank, selected_period)
