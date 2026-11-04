@@ -169,6 +169,7 @@ Folder `downloads/`, `logs/`, `.venv/`, dan `.env` tidak masuk Git.
 | `DB_NAME tidak ditemukan. Cek file .env` | `.env` belum ada atau `DB_NAME` kosong |
 | `DB_USER dan DB_PASSWORD wajib diisi untuk DB_AUTH=sql` | `DB_AUTH=sql` tetapi user atau password kosong |
 | `Login failed for user ...` | password salah, atau server belum mengaktifkan *SQL Server and Windows Authentication mode* |
+| `Login failed for user 'DOMAIN\nama'` (nama berformat DOMAIN\user) | Windows auth terpakai: `DB_AUTH=sql` tidak terbaca. Pastikan file bernama persis `.env` (bukan `.env.txt`), ada di folder proyek, dan tulis `DB_AUTH=sql` tanpa spasi atau tanda kutip |
 | Error sertifikat SSL | isi `DB_TRUST_CERT=yes` |
 | `bs4.FeatureNotFound: ... lxml` | `lxml` belum terpasang. Jalankan `pip install -r requirements.txt` |
 | Scraper BSN atau Mega Syariah gagal | Chrome belum terpasang atau tidak bisa dijalankan |
