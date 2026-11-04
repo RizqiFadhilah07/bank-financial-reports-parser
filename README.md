@@ -36,7 +36,7 @@ python -m venv .venv
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-`requirements.txt` memuat `beautifulsoup4`, `lxml`, `openpyxl`, `pdfplumber`, `pyodbc`, `python-dotenv`, `requests`, dan `selenium`. `lxml` wajib karena dipakai sebagai parser HTML oleh beberapa scraper.
+`requirements.txt` memuat `beautifulsoup4`, `lxml`, `openpyxl`, `pandas`, `pdfplumber`, `pyodbc`, `pytest`, `python-dotenv`, `requests`, `selenium`, dan `streamlit`. `lxml` wajib karena dipakai sebagai parser HTML oleh beberapa scraper.
 
 ## Konfigurasi koneksi (`.env`)
 
