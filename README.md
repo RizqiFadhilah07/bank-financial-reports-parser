@@ -116,6 +116,28 @@ Seed hanya `INSERT` dan menolak berjalan bila ada tabel master yang sudah terisi
 
 Untuk penjadwalan, buat tugas di Task Scheduler yang memanggil `.venv\Scripts\python.exe run_monthly.py` setiap hari, dengan *Start in* diarahkan ke folder proyek.
 
+## Antarmuka web (Streamlit)
+
+Tiga halaman untuk melihat data tanpa SSMS. UI hanya membaca database; halaman Upload PDF tidak menyimpan apa pun.
+
+| Halaman | Fungsi |
+|---|---|
+| Data Metrik | Filter bank, periode, kategori, dan cari metrik; tabel nilai per laporan |
+| Status Laporan | Pivot status per bank dan bulan, laporan bermasalah, temuan validasi |
+| Upload PDF | Uji ekstraksi satu PDF terhadap bank terpilih, dengan peringatan bila nama bank tidak ada di isi PDF |
+
+Menjalankan (dari folder proyek, database harus sudah terisi):
+
+```powershell
+git checkout ui
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m streamlit run Data_Metrik.py --server.address 127.0.0.1
+```
+
+Buka `http://127.0.0.1:8501`. UI memakai `.env` yang sama dengan pipeline.
+
+- Data di-cache. Setelah pipeline menambah data, hentikan server (`Ctrl+C`) lalu jalankan ulang.
+
 ## Hak akses database
 
 Akun yang menjalankan pipeline cukup memiliki `CONNECT`, `SELECT`, `INSERT`, dan `UPDATE` pada schema `dbo`. Hak `DELETE`, `CREATE`, dan `DROP` tidak dibutuhkan (teruji dengan SQL login yang dibatasi demikian). Pembuatan schema dilakukan satu kali oleh akun yang berhak.
