@@ -28,17 +28,20 @@ banks_df = load_banks()
 bank_names = banks_df["bank_name"].tolist()
 
 selected_bank = st.sidebar.selectbox("Pilih bank", bank_names)
-st.write("Bank terpilih:", selected_bank)
 
 reports_df = load_reports()
 bank_reports = reports_df[reports_df["bank_name"] == selected_bank]
 periods = sorted(bank_reports["period_date"], reverse=True)
 
 selected_period = st.sidebar.selectbox("Pilih periode", periods, format_func=format_periode)
-st.write("Periode terpilih:", selected_period)
+if not periods:
+    st.info("Belum ada laporan untuk bank ini.")
+    st.stop()
+report_status = bank_reports.loc[bank_reports["period_date"] == selected_period, "status"].iloc[0]
 
 metrics_df = load_metrics(selected_bank, selected_period)
 metrics_df["value"] = pd.to_numeric(metrics_df["value"])
+total_metrics = len(metrics_df)
 
 categories = ["Semua"] + sorted(metrics_df["category"].unique().tolist())
 selected_category = st.sidebar.selectbox("Pilih kategori", categories)
@@ -57,7 +60,11 @@ if keyword:
         metrics_df["metric_alias"].str.contains(keyword, case=False, na=False, regex=False)
     )
     metrics_df = metrics_df[mask]
-st.write("Jumlah baris:", len(metrics_df))
+st.subheader(f"{selected_bank} - {format_periode(selected_period)}")
+col1, col2, col3 = st.columns(3)
+col1.metric("Status laporan", report_status, border=True)
+col2.metric("Metrik di laporan", total_metrics, border=True)
+col3.metric("Baris ditampilkan", len(metrics_df), border=True)
 st.dataframe(
     metrics_df,
     hide_index=True,
