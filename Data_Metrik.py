@@ -22,6 +22,27 @@ BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
 def format_periode(d):
     return f"{BULAN[d.month - 1]} {d.year}"
 
+COLUMN_CONFIG = {
+    "metric_name": st.column_config.TextColumn("Nama metrik", pinned=True),
+    "value": st.column_config.NumberColumn(
+        "Nilai (juta Rp)",
+        format="localized",
+        help="Tanpa tanda, dalam juta rupiah. Tandanya ada di kolom Tanda. Angka kosong di PDF disimpan sebagai 0.",
+    ),
+    "sign_type": st.column_config.TextColumn(
+        "Tanda",
+        help="Tanda nilai: + (positif) atau - (negatif).",
+    ),
+    "category": st.column_config.TextColumn("Kategori"),
+    "sub_category": st.column_config.TextColumn("Sub-kategori"),
+    "raw_text": st.column_config.TextColumn(
+        "Teks asli",
+        help="Potongan teks PDF tempat metrik ditemukan: label beserta angkanya, atau label saja bila tidak ada angka.",
+    ),
+    "metric_alias": st.column_config.TextColumn("Alias metrik"),
+    "metric_order": st.column_config.NumberColumn("No. urut"),
+}
+
 st.title("Bank Financial Reports")
 
 banks_df = load_banks()
@@ -60,23 +81,27 @@ if keyword:
         metrics_df["metric_alias"].str.contains(keyword, case=False, na=False, regex=False)
     )
     metrics_df = metrics_df[mask]
+
+selected_columns = st.sidebar.multiselect(
+    "Kolom yang ditampilkan",
+    list(COLUMN_CONFIG),
+    default=list(COLUMN_CONFIG),
+    format_func=lambda c: COLUMN_CONFIG[c]["label"],
+    placeholder="Pilih kolom",
+)
+
 st.subheader(f"{selected_bank} - {format_periode(selected_period)}")
 col1, col2, col3 = st.columns(3)
 col1.metric("Status laporan", report_status, border=True)
 col2.metric("Metrik di laporan", total_metrics, border=True)
 col3.metric("Baris ditampilkan", len(metrics_df), border=True)
+if not selected_columns:
+    st.info("Pilih minimal satu kolom di sidebar untuk menampilkan tabel.")
+    st.stop()
 st.dataframe(
     metrics_df,
     hide_index=True,
     width="stretch",
-    column_config={
-        "category": st.column_config.TextColumn("Kategori"),
-        "sub_category": st.column_config.TextColumn("Sub-kategori"),
-        "metric_order": st.column_config.NumberColumn("No. urut"),
-        "metric_alias": st.column_config.TextColumn("Alias metrik"),
-        "metric_name": st.column_config.TextColumn("Nama metrik"),
-        "value": st.column_config.NumberColumn("Nilai (juta Rp)", format="localized"),
-        "sign_type": st.column_config.TextColumn("Tanda"),
-        "raw_text": st.column_config.TextColumn("Teks asli"),
-    },
+    column_order=[c for c in COLUMN_CONFIG if c in selected_columns],
+    column_config=COLUMN_CONFIG,
 )
