@@ -168,6 +168,11 @@ Lima aturan: `neraca`, `laba`, `leaking_label`, `metric_hilang`, dan `laporan_ko
 ├── validate.py              validasi hasil
 ├── run_monthly.py           orkestrasi bulanan
 ├── coverage.py
+├── data_access.py           query baca untuk UI
+├── preview.py               ekstraksi PDF tanpa menyimpan, cek nama bank
+├── Data_Metrik.py           halaman utama Streamlit
+├── pages/                   halaman Status Laporan dan Upload PDF
+├── test_*.py                tes pytest
 ├── scrapers/                satu scraper per bank + registry.py
 ├── parsers/                 pembacaan PDF dan ekstraksi metrik
 ├── requirements.txt
