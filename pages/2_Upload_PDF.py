@@ -18,7 +18,7 @@ banks_df = load_banks()
 bank_name = st.selectbox("Bank", sorted(banks_df["bank_name"]))
 pdf_file = st.file_uploader("Unggah PDF", type="pdf")
 
-if st.button("Ekstrak"):
+if st.button("Ekstrak", type="primary"):
     if pdf_file is None:
         st.warning("Upload file PDF terlebih dahulu")
     else:
@@ -45,8 +45,26 @@ if "hasil" in st.session_state:
         hasil["results"],
         columns=["metric_order", "metric_alias", "value", "raw_text", "sign_type"],
     )
-    st.write(f"Bank: {st.session_state['hasil_bank']}")
-    st.write(f"Jumlah baris: {len(df)}")
+    bank = st.session_state["hasil_bank"]
+    nama_cocok = hasil["nama_cocok"]
+    if nama_cocok is None:
+        cek_nama = "Tidak dicek"
+    elif nama_cocok:
+        cek_nama = "Cocok"
+    else:
+        cek_nama = "Tidak cocok"
+
+    if nama_cocok is None:
+        st.info(
+            f"Nama bank {bank} tidak bisa dicek otomatis dari isi PDF. "
+            "Pastikan sendiri file yang diunggah sudah sesuai."
+        )
+
+    st.subheader(f"Hasil ekstraksi: {bank}")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Metrik ditemukan", len(df), border=True)
+    col2.metric("Metrik tidak ditemukan", len(hasil["missing"]), border=True)
+    col3.metric("Nama bank di PDF", cek_nama, border=True)
     st.dataframe(
         df,
         width="stretch",
@@ -61,12 +79,15 @@ if "hasil" in st.session_state:
         }
     )
     if hasil["missing"]:
-        st.warning("Metrik yang tidak ditemukan: " + ", ".join(hasil["missing"]))
+        st.warning(f"{len(hasil['missing'])} metrik tidak ditemukan di PDF ini.")
+        with st.expander("Lihat daftar metrik yang tidak ditemukan"):
+            st.markdown("\n".join(f"- `{m}`" for m in hasil["missing"]))
     else:
         st.success("Semua metrik ditemukan.")
+
     st.download_button(
         "Unduh CSV",
         df.to_csv(index=False).encode("utf-8"),
-        file_name="hasil_ekstraksi.csv",
+        file_name=f"hasil_ekstraksi_{bank.replace(' ', '_')}.csv",
         mime="text/csv",
     )
