@@ -13,17 +13,26 @@ def load_findings():
 
 def color_status(value):
     if value == "failed":
-        return "background-color: #8b2e2e"
+        return "background-color: #8b2e2e; color: white"
     if value == "downloaded":
-        return "background-color: #1f6f43"
+        return "background-color: #1f6f43; color: white"
     return ""
+
 
 st.title("Status Laporan")
 
 reports_df = load_reports()
+findings_df = load_findings()
+col1,col2,col3,col4 = st.columns(4)
+col1.metric("Total laporan", len(reports_df), border=True)
+col2.metric("Parsed", int((reports_df["status"] == "parsed").sum()), border=True)
+col3.metric("Bermasalah", int((reports_df["status"] != "parsed").sum()), border=True)
+col4.metric("Temuan validasi", len(findings_df), border=True)
 status_pivot = reports_df.pivot(index="bank_name", columns="period_date", values="status")
-st.dataframe(status_pivot.style.map(color_status), width="stretch")
-st.caption("Merah: laporan gagal. Hijau: laporan sudah diunduh tetapi belum diproses.")
+styled_pivot = status_pivot.style.map(color_status).format(na_rep="-")
+st.dataframe(styled_pivot, width="stretch")
+st.caption("Merah: laporan gagal. Hijau: laporan sudah diunduh tetapi belum diproses. Tanda -: laporan untuk periode itu tidak ada.")
+
 
 st.subheader("Laporan Bermasalah")
 problem_df = reports_df[reports_df["status"] != "parsed"]
