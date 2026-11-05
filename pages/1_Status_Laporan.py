@@ -43,6 +43,12 @@ else:
         problem_df[["bank_name", "period_date", "status", "error_message"]],
         hide_index=True,
         width="stretch",
+        column_config={
+            "bank_name": st.column_config.TextColumn("Bank"),
+            "period_date": st.column_config.DateColumn("Periode", format="YYYY-MM-DD"),
+            "status": st.column_config.TextColumn("Status"),
+            "error_message": st.column_config.TextColumn("Pesan error"),
+        },
     )
 
 st.subheader("Temuan Validasi")
