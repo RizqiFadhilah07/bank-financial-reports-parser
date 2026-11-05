@@ -57,7 +57,7 @@ if "hasil" in st.session_state:
     if nama_cocok is None:
         st.info(
             f"Nama bank {bank} tidak bisa dicek otomatis dari isi PDF. "
-            "Pastikan sendiri file yang diunggah sudah sesuai."
+            "Silahkan pastikan file yang diunggah sudah sesuai."
         )
 
     st.subheader(f"Hasil ekstraksi: {bank}")
