@@ -29,8 +29,8 @@ col2.metric("Parsed", int((reports_df["status"] == "parsed").sum()), border=True
 col3.metric("Bermasalah", int((reports_df["status"] != "parsed").sum()), border=True)
 col4.metric("Temuan validasi", len(findings_df), border=True)
 status_pivot = reports_df.pivot(index="bank_name", columns="period_date", values="status").fillna("-")
-styled_pivot = status_pivot.style.map(color_status).format(na_rep="-")
-st.dataframe(styled_pivot, width="stretch")
+styled_pivot = status_pivot.style.map(color_status)
+st.dataframe(styled_pivot, width="stretch", column_config={"bank_name": "Bank"})
 st.caption("Merah: laporan gagal. Hijau: laporan sudah diunduh tetapi belum diproses. Tanda -: laporan untuk periode itu tidak ada.")
 
 
@@ -52,7 +52,6 @@ else:
     )
 
 st.subheader("Temuan Validasi")
-findings_df = load_findings()
 if findings_df.empty:
     st.success("Semua aturan validasi lolos, tidak ada temuan.")
 else:
