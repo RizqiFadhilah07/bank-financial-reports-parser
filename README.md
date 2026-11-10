@@ -122,9 +122,9 @@ Tiga halaman untuk melihat data tanpa SSMS. UI hanya membaca database; halaman U
 
 | Halaman | Fungsi |
 |---|---|
-| Data Metrik | Filter bank, periode, kategori, dan cari metrik; tabel nilai per laporan |
-| Status Laporan | Pivot status per bank dan bulan, laporan bermasalah, temuan validasi |
-| Upload PDF | Uji ekstraksi satu PDF terhadap bank terpilih, dengan peringatan bila nama bank tidak ada di isi PDF |
+| Data Metrik | Filter bank, periode, kategori, dan cari metrik; pilih kolom yang ditampilkan; kartu ringkasan; tabel nilai per laporan |
+| Status Laporan | Kartu ringkasan, pivot status per bank dan bulan, laporan bermasalah, temuan validasi |
+| Upload PDF | Uji ekstraksi satu PDF terhadap bank terpilih, peringatan bila nama bank tidak ada di isi PDF, daftar metrik yang tidak ditemukan, dan unduhan hasil sebagai CSV |
 
 Menjalankan (dari folder proyek, database harus sudah terisi):
 
@@ -136,7 +136,7 @@ git checkout ui
 
 Buka `http://127.0.0.1:8501`. UI memakai `.env` yang sama dengan pipeline.
 
-- Data di-cache. Setelah pipeline menambah data, hentikan server (`Ctrl+C`) lalu jalankan ulang.
+- Data di-cache selama 5 menit. Setelah pipeline menambah data, tabel menyegar sendiri dalam beberapa menit; untuk langsung melihatnya, hentikan server (`Ctrl+C`) lalu jalankan ulang.
 
 ## Hak akses database
 
