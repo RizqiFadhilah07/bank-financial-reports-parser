@@ -4,15 +4,15 @@ from data_access import get_banks, get_reports, get_metrics
 
 st.set_page_config(page_title="Bank Reports", layout="wide")
 
-@st.cache_data
+@st.cache_data(ttl=300)
 def load_banks():
     return get_banks()
 
-@st.cache_data
+@st.cache_data(ttl=300)
 def load_reports():
     return get_reports()
 
-@st.cache_data
+@st.cache_data(ttl=300)
 def load_metrics(bank_name, period_date):
     return get_metrics(bank_name, period_date)
 

@@ -7,7 +7,7 @@ from preview import extract_preview
 
 st.set_page_config(page_title="Upload PDF", layout="wide")
 
-@st.cache_data
+@st.cache_data(ttl=300)
 def load_banks():
     return get_banks()
 

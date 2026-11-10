@@ -3,11 +3,11 @@ from data_access import get_reports, get_findings
 
 st.set_page_config(page_title="Status Laporan", layout="wide")
 
-@st.cache_data
+@st.cache_data(ttl=300)
 def load_reports():
     return get_reports()
 
-@st.cache_data
+@st.cache_data(ttl=300)
 def load_findings():
     return get_findings()
 
