@@ -15,5 +15,5 @@ downloads_backup/
 backfill_source_url.py
 test_diag_error.py
 konteks_2026-11-04.md
-catatan.db
-catatan.db-journal
+notes.db
+notes.db-journal
