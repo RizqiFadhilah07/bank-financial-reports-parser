@@ -31,10 +31,12 @@ WHERE status != 'done';
 def _now():
     return datetime.now().isoformat(timespec="seconds")
 
+
 def _connect(db_path):
     conn = sqlite3.connect(db_path)
     conn.executescript(_SCHEMA)
     return conn
+
 
 def add_flag(bank_name, period_date, metric_alias, value, reason, note,
             flagged_by, db_path=DEFAULT_DB_PATH):
@@ -87,7 +89,8 @@ def change_status(flag_id, new_status, updated_by, db_path=DEFAULT_DB_PATH):
     finally:
         conn.close()
 
-def list_flags(bank_name=None, period_date=None, status=None,db_path=DEFAULT_DB_PATH):
+
+def list_flags(bank_name=None, period_date=None, status=None, db_path=DEFAULT_DB_PATH):
     sql = "SELECT * FROM flag WHERE 1 = 1"
     params = []
     if bank_name is not None:
