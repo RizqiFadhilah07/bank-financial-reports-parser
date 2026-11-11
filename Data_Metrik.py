@@ -98,10 +98,18 @@ col3.metric("Baris ditampilkan", len(metrics_df), border=True)
 if not selected_columns:
     st.info("Pilih minimal satu kolom di sidebar untuk menampilkan tabel.")
     st.stop()
-st.dataframe(
+table_key = f"tabel_metrik_{selected_bank}_{selected_period}_{selected_category}_{selected_sub_category}_{keyword}"
+event = st.dataframe(
     metrics_df,
     hide_index=True,
+    on_select="rerun",
+    selection_mode="single-row",
+    key=table_key,
     width="stretch",
     column_order=[c for c in COLUMN_CONFIG if c in selected_columns],
     column_config=COLUMN_CONFIG,
 )
+selected_rows = event.selection.rows
+if selected_rows:
+    row = metrics_df.iloc[selected_rows[0]]
+    st.write(row["metric_name"], row["metric_alias"], row["value"])
