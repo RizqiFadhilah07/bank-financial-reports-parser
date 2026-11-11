@@ -42,6 +42,11 @@ COLUMN_CONFIG = {
     "metric_alias": st.column_config.TextColumn("Alias metrik"),
     "metric_order": st.column_config.NumberColumn("No. urut"),
 }
+REASON_LABELS = {
+    "value_mismatch": "Nilai tidak sesuai PDF",
+    "wrong_sign_type": "Tanda salah",
+    "other": "Lainnya",
+}
 
 st.title("Bank Financial Reports")
 
@@ -112,4 +117,16 @@ event = st.dataframe(
 selected_rows = event.selection.rows
 if selected_rows:
     row = metrics_df.iloc[selected_rows[0]]
-    st.write(row["metric_name"], row["metric_alias"], row["value"])
+    st.subheader("Tandai Metrik")
+    st.write(f"{row['metric_name']} ({row['metric_alias']}), nilai {row['value']:,.2f}")
+    with st.form("form_tandai"):
+        flagged_by = st.text_input("Nama Pengisi")
+        reason = st.selectbox(
+            "Alasan",
+            list(REASON_LABELS),
+            format_func=lambda r: REASON_LABELS[r],
+        )
+        note = st.text_input("Catatan (opsional)", max_chars=200)
+        submitted = st.form_submit_button("Simpan notes")
+    if submitted:
+        st.write(flagged_by, reason, note)
