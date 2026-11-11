@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from data_access import get_banks, get_reports, get_metrics
+from notes import add_flag
 
 st.set_page_config(page_title="Bank Reports", layout="wide")
 
@@ -129,4 +130,16 @@ if selected_rows:
         note = st.text_input("Catatan (opsional)", max_chars=200)
         submitted = st.form_submit_button("Simpan notes")
     if submitted:
-        st.write(flagged_by, reason, note)
+        try:
+            flag_id = add_flag(
+                selected_bank,
+                selected_period,
+                row["metric_alias"],
+                row["value"],
+                reason,
+                note,
+                flagged_by,
+            )
+            st.success(f"Tanda tersimpan (nomor {flag_id}).")
+        except ValueError as e:
+            st.error(str(e))
