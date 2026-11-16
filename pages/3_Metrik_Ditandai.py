@@ -106,7 +106,7 @@ with st.form("form_ubah_status"):
     submitted = st.form_submit_button("Simpan status")
 
 if submitted:
-    try: 
+    try:
         change_status(int(row["id"]), new_status, updated_by)
     except ValueError as e:
         st.error(str(e))
