@@ -6,6 +6,12 @@ import pandas as pd
 
 REASONS = ("value_mismatch", "wrong_sign_type", "other")
 STATUS = ("needs_check", "on_review", "done")
+ALLOWED_TRANSITIONS = {
+    "needs_check": ("on_review",),
+    "on_review": ("needs_check", "done"),
+    "done": (),
+}
+
 DEFAULT_DB_PATH = Path(__file__).resolve().parent / "notes.db"
 
 _SCHEMA = """
@@ -75,6 +81,19 @@ def change_status(flag_id, new_status, updated_by, db_path=DEFAULT_DB_PATH):
 
     conn = _connect(db_path)
     try:
+        row = conn.execute(
+            "SELECT status FROM flag WHERE id = ?", (flag_id,)
+        ).fetchone()
+        if row is None:
+            raise ValueError("Flag tidak ditemukan.")
+        current_status = row[0]
+        if current_status == "done":
+            raise ValueError("Flag yang sudah selesai tidak bisa diubah lagi.")
+        if new_status not in ALLOWED_TRANSITIONS[current_status]:
+            raise ValueError(
+                f'Perpindahan status dari "{current_status}" '
+                f'ke "{new_status}" tidak diizinkan.'
+            )
         cur = conn.execute(
             """
             UPDATE flag SET status = ?, updated_by = ?, updated_at = ? WHERE id = ?

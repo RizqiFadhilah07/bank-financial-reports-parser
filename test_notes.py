@@ -95,16 +95,17 @@ def test_change_status_input_tidak_valid(db, status, nama, flag_id, pesan):
 
 def test_flag_baru_boleh_setelah_done(db):
     pertama = _tambah(db)
+    notes.change_status(pertama, "on_review", "Pengecek", db_path=db)
     notes.change_status(pertama, "done", "Pengecek", db_path=db)
     kedua = _tambah(db)
     assert kedua == pertama + 1
 
 
-def test_buka_kembali_done_ditolak_bila_ada_flag_terbuka(db):
+def test_done_tidak_bisa_diubah_lagi(db):
     pertama = _tambah(db)
+    notes.change_status(pertama, "on_review", "Pengecek", db_path=db)
     notes.change_status(pertama, "done", "Pengecek", db_path=db)
-    _tambah(db)
-    with pytest.raises(ValueError, match="belum selesai"):
+    with pytest.raises(ValueError, match="sudah selesai"):
         notes.change_status(pertama, "needs_check", "Pengecek", db_path=db)
 
 
@@ -132,3 +133,23 @@ def test_list_flags_kosong_tetap_punya_kolom(db):
     assert len(hasil) == 0
     assert "id" in hasil.columns
     assert "bank_name" in hasil.columns
+
+def test_lompat_needs_check_ke_done_ditolak(db):
+    flag_id = _tambah(db)
+    with pytest.raises(ValueError, match="tidak diizinkan"):
+        notes.change_status(flag_id, "done", "Pengecek", db_path=db)
+    assert _baca_status(db, flag_id) == ("needs_check", None)
+
+
+def test_mundur_on_review_ke_needs_check_berhasil(db):
+    flag_id = _tambah(db)
+    notes.change_status(flag_id, "on_review", "Pengecek", db_path=db)
+    notes.change_status(flag_id, "needs_check", "Pengecek", db_path=db)
+    assert _baca_status(db, flag_id)[0] == "needs_check"
+
+
+def test_status_sama_ditolak(db):
+    flag_id = _tambah(db)
+    with pytest.raises(ValueError, match="tidak diizinkan"):
+        notes.change_status(flag_id, "needs_check", "Pengecek", db_path=db)
+    assert _baca_status(db, flag_id) == ("needs_check", None)
