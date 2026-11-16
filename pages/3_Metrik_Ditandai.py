@@ -51,7 +51,8 @@ view = flags_df.assign(
     status = flags_df["status"].map(STATUS_LABELS),
 ).fillna("-")
 
-st.dataframe(
+table_key = f"flags-{selected_bank}-{selected_period}-{selected_status}"
+event = st.dataframe(
     view,
     hide_index=True,
     column_order=[
@@ -72,5 +73,20 @@ st.dataframe(
         "status": st.column_config.TextColumn("Status"),
         "updated_by": st.column_config.TextColumn("Diubah oleh"),
         "updated_at": st.column_config.TextColumn("Waktu diubah"),
+
     },
+    key = table_key,
+    on_select= "rerun",
+    selection_mode="single-row",
+)
+selected_rows = event.selection.rows
+if not selected_rows:
+    st.caption(f"Pilih satu baris untuk mengubah statusnya.")
+    st.stop()
+
+row = flags_df.iloc[selected_rows[0]]
+st.subheader("Ubah status")
+st.write(
+    f"No. {row['id']}: {row['bank_name']}, {row['period_date']}, "
+    f"{row['metric_alias']} (status sekarang: {STATUS_LABELS[row['status']]})"
 )
