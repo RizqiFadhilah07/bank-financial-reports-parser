@@ -94,17 +94,13 @@ def change_status(flag_id, new_status, updated_by, db_path=DEFAULT_DB_PATH):
                 f'Perpindahan status dari "{current_status}" '
                 f'ke "{new_status}" tidak diizinkan.'
             )
-        cur = conn.execute(
+        conn.execute(
             """
             UPDATE flag SET status = ?, updated_by = ?, updated_at = ? WHERE id = ?
             """,
             (new_status, updated_by, _now(), flag_id)
         )
         conn.commit()
-        if cur.rowcount == 0:
-            raise ValueError("Flag tidak ditemukan.")
-    except sqlite3.IntegrityError:
-        raise ValueError("Metrik ini sudah punya flag yang belum selesai.")
     finally:
         conn.close()
 
