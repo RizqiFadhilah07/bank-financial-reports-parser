@@ -85,6 +85,8 @@ if not selected_rows:
     st.stop()
 
 row = flags_df.iloc[selected_rows[0]]
+if "flash" in st.session_state:
+    st.success(st.session_state.pop("flash"))
 st.subheader("Ubah status")
 st.write(
     f"No. {row['id']}: {row['bank_name']}, {row['period_date']}, "
@@ -111,5 +113,5 @@ if submitted:
     except ValueError as e:
         st.error(str(e))
     else:
-        st.success("Status diperbarui.")
-        st.stop()
+        st.session_state["flash"] = "Status diperbarui."
+        st.rerun()
