@@ -1,5 +1,5 @@
 import streamlit as st
-from notes import list_flags
+from notes import list_flags, ALLOWED_TRANSITIONS, change_status
 
 st.set_page_config(page_title="Metrik Ditandai", layout="wide")
 
@@ -90,3 +90,8 @@ st.write(
     f"No. {row['id']}: {row['bank_name']}, {row['period_date']}, "
     f"{row['metric_alias']} (status sekarang: {STATUS_LABELS[row['status']]})"
 )
+
+current_status = row["status"]
+if current_status == "done":
+    st.info("Flag ini sudah selesai dan tidak bisa diubah lagi.")
+    st.stop()
