@@ -95,3 +95,21 @@ current_status = row["status"]
 if current_status == "done":
     st.info("Flag ini sudah selesai dan tidak bisa diubah lagi.")
     st.stop()
+options = list(ALLOWED_TRANSITIONS[current_status])
+with st.form("form_ubah_status"):
+    new_status = st.selectbox(
+        "Status tujuan",
+        options,
+        format_func=lambda s: STATUS_LABELS[s],
+    )
+    updated_by = st.text_input("Nama pengubah")
+    submitted = st.form_submit_button("Simpan status")
+
+if submitted:
+    try: 
+        change_status(int(row["id"]), new_status, updated_by)
+    except ValueError as e:
+        st.error(str(e))
+    else:
+        st.success("Status diperbarui.")
+        st.stop()
