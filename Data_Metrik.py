@@ -115,7 +115,8 @@ col3.metric("Baris ditampilkan", len(metrics_df), border=True)
 if not selected_columns:
     st.info("Pilih minimal satu kolom di sidebar untuk menampilkan tabel.")
     st.stop()
-table_key = f"tabel_metrik_{selected_bank}_{selected_period}_{selected_category}_{selected_sub_category}_{keyword}"
+table_version = st.session_state.get("metric_table_version", 0)
+table_key = f"tabel_metrik_{selected_bank}_{selected_period}_{selected_category}_{selected_sub_category}_{keyword}_{table_version}"
 event = st.dataframe(
     metrics_df,
     hide_index=True,
@@ -126,6 +127,8 @@ event = st.dataframe(
     column_order=[c for c in COLUMN_CONFIG if c in selected_columns],
     column_config=COLUMN_CONFIG,
 )
+if "metric_flash" in st.session_state:
+    st.success(st.session_state.pop("metric_flash"))
 selected_rows = event.selection.rows
 if selected_rows:
     row = metrics_df.iloc[selected_rows[0]]
@@ -151,6 +154,9 @@ if selected_rows:
                 note,
                 flagged_by,
             )
-            st.success(f"Tanda tersimpan (nomor {flag_id}).")
         except ValueError as e:
             st.error(str(e))
+        else:
+            st.session_state["metric_flash"] = f"Tanda tersimpan (nomor {flag_id})."
+            st.session_state["metric_table_version"] = table_version + 1
+            st.rerun()
