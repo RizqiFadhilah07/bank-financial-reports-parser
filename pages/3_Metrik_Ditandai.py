@@ -1,4 +1,5 @@
 import streamlit as st
+from data_access import get_metrics
 from notes import list_flags, ALLOWED_TRANSITIONS, change_status
 
 st.set_page_config(page_title="Metrik Ditandai", layout="wide")
@@ -45,10 +46,27 @@ if flags_df.empty:
     st.info("Tidak ada tanda yang cocok dengan filter.")
     st.stop()
 
+@st.cache_data(ttl=300)
+def load_names(bank, period):
+    df = get_metrics(bank, period)
+    return dict(zip(df["metric_alias"], df["metric_name"]))
+
+names = {}
+try:
+    for bank, period in flags_df[["bank_name", "period_date"]].drop_duplicates().itertuples(index=False):
+        names[(bank, period)] = load_names(bank, period)
+except Exception:
+    st.warning("Nama metrik tidak dapat dimuat; menampilkan alias.")
 
 view = flags_df.assign(
     reason = flags_df["reason"].map(REASON_LABELS),
     status = flags_df["status"].map(STATUS_LABELS),
+    metric_name = [
+        names.get((b, p), {}).get(a, a)
+        for b, p, a in zip(
+            flags_df["bank_name"], flags_df["period_date"], flags_df["metric_alias"]
+        )
+    ],
 ).fillna("-")
 
 table_version = st.session_state.get("table_version",0)
@@ -57,14 +75,15 @@ event = st.dataframe(
     view,
     hide_index=True,
     column_order=[
-        "id", "bank_name", "period_date", "metric_alias", "value_at_flag",
+        "id", "bank_name", "period_date", "metric_name", "metric_alias", "value_at_flag",
         "reason", "note", "flagged_by", "created_at", "status",
         "updated_by", "updated_at",
     ],
     column_config={
-        "id": st.column_config.NumberColumn("No."),
-        "bank_name": st.column_config.TextColumn("Bank"),
+        "id": st.column_config.NumberColumn("No.", pinned=True),
+        "bank_name": st.column_config.TextColumn("Bank", pinned=True),
         "period_date": st.column_config.TextColumn("Periode"),
+        "metric_name": st.column_config.TextColumn("Nama metrik"),
         "metric_alias": st.column_config.TextColumn("Alias metrik"),
         "value_at_flag": st.column_config.TextColumn("Nilai saat ditandai"),
         "reason": st.column_config.TextColumn("Alasan"),
