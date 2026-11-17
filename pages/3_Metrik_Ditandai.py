@@ -51,7 +51,8 @@ view = flags_df.assign(
     status = flags_df["status"].map(STATUS_LABELS),
 ).fillna("-")
 
-table_key = f"flags-{selected_bank}-{selected_period}-{selected_status}"
+table_version = st.session_state.get("table_version",0)
+table_key = f"flags-{selected_bank}-{selected_period}-{selected_status}-{table_version}"
 event = st.dataframe(
     view,
     hide_index=True,
@@ -79,14 +80,14 @@ event = st.dataframe(
     on_select= "rerun",
     selection_mode="single-row",
 )
+if "flash" in st.session_state:
+    st.success(st.session_state.pop("flash"))
 selected_rows = event.selection.rows
 if not selected_rows:
     st.caption(f"Pilih satu baris untuk mengubah statusnya.")
     st.stop()
 
 row = flags_df.iloc[selected_rows[0]]
-if "flash" in st.session_state:
-    st.success(st.session_state.pop("flash"))
 st.subheader("Ubah status")
 st.write(
     f"No. {row['id']}: {row['bank_name']}, {row['period_date']}, "
@@ -114,4 +115,5 @@ if submitted:
         st.error(str(e))
     else:
         st.session_state["flash"] = "Status diperbarui."
+        st.session_state["table_version"] = table_version + 1
         st.rerun()
