@@ -108,9 +108,11 @@ if not selected_rows:
 
 row = flags_df.iloc[selected_rows[0]]
 st.subheader("Ubah status")
+metric_name = view.iloc[selected_rows[0]]["metric_name"]
 st.write(
     f"No. {row['id']}: {row['bank_name']}, {row['period_date']}, "
-    f"{row['metric_alias']} (status sekarang: {STATUS_LABELS[row['status']]})"
+    f"{metric_name} ({row['metric_alias']}), "
+    f"status sekarang: {STATUS_LABELS[row['status']]}"
 )
 
 current_status = row["status"]
