@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from data_access import get_banks, get_reports, get_metrics
 from notes import add_flag, list_flags
+from labels import STATUS_LABELS, REASON_LABELS
 
 st.set_page_config(page_title="Bank Reports", layout="wide")
 
@@ -43,15 +44,6 @@ COLUMN_CONFIG = {
     ),
     "metric_alias": st.column_config.TextColumn("Alias metrik"),
     "metric_order": st.column_config.NumberColumn("No. urut"),
-}
-REASON_LABELS = {
-    "value_mismatch": "Nilai tidak sesuai PDF",
-    "wrong_sign_type": "Tanda salah",
-    "other": "Lainnya",
-}
-FLAG_LABELS = {
-    "needs_check": "Perlu dicek",
-    "on_review" : "On Review"
 }
 
 st.title("Bank Financial Reports")
@@ -97,7 +89,7 @@ open_flags = list_flags(selected_bank, selected_period)
 open_flags = open_flags[open_flags["status"] != "done"]
 flag_by_alias = dict(zip(open_flags["metric_alias"], open_flags["status"]))
 metrics_df = metrics_df.assign(
-    flag_status=metrics_df["metric_alias"].map(flag_by_alias).map(FLAG_LABELS).fillna("-")
+    flag_status=metrics_df["metric_alias"].map(flag_by_alias).map(STATUS_LABELS).fillna("-")
 )
 selected_columns = st.sidebar.multiselect(
     "Kolom yang ditampilkan",
