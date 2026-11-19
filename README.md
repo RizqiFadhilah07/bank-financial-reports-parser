@@ -118,13 +118,14 @@ Untuk penjadwalan, buat tugas di Task Scheduler yang memanggil `.venv\Scripts\py
 
 ## Antarmuka web (Streamlit)
 
-Tiga halaman untuk melihat data tanpa SSMS. UI hanya membaca database; halaman Upload PDF tidak menyimpan apa pun.
+Empat halaman untuk melihat data tanpa SSMS. Terhadap database sistem, UI hanya membaca; halaman Upload PDF tidak menyimpan apa pun. Fitur flag menyimpan catatan ke file SQLite terpisah (`notes.db`), bukan ke database sistem.
 
 | Halaman | Fungsi |
 |---|---|
-| Data Metrik | Filter bank, periode, kategori, dan cari metrik; pilih kolom yang ditampilkan; kartu ringkasan; tabel nilai per laporan |
+| Data Metrik | Filter bank, periode, kategori, dan cari metrik; pilih kolom yang ditampilkan; kartu ringkasan; tabel nilai per laporan; pilih satu baris untuk menandainya (flag) dan lihat statusnya di kolom Ditandai |
 | Status Laporan | Kartu ringkasan, pivot status per bank dan bulan, laporan bermasalah, temuan validasi |
 | Upload PDF | Uji ekstraksi satu PDF terhadap bank terpilih, peringatan bila nama bank tidak ada di isi PDF, daftar metrik yang tidak ditemukan, dan unduhan hasil sebagai CSV |
+| Metrik Ditandai | Daftar semua tanda dengan filter bank, periode, dan status; pilih satu baris untuk mengubah statusnya (Perlu dicek, On review, Done) |
 
 Menjalankan (dari folder proyek, database harus sudah terisi):
 
