@@ -1,4 +1,4 @@
-﻿import sqlite3
+import sqlite3
 
 import pytest
 
@@ -82,8 +82,8 @@ def test_change_status_berhasil(db):
     "status, nama, flag_id, pesan",
     [
         ("tidak_ada", "Pengecek", 1, "Status tidak dikenal"),
-        ("done", "", 1, "Nama"),
-        ("done", None, 1, "Nama"),
+        ("done", "", 1, "Nama pengisi wajib diisi"),
+        ("done", None, 1, "Nama pengisi wajib diisi"),
         ("done", "Pengecek", 99, "Flag tidak ditemukan"),
     ],
 )
@@ -133,6 +133,7 @@ def test_list_flags_kosong_tetap_punya_kolom(db):
     assert len(hasil) == 0
     assert "id" in hasil.columns
     assert "bank_name" in hasil.columns
+
 
 def test_lompat_needs_check_ke_done_ditolak(db):
     flag_id = _tambah(db)

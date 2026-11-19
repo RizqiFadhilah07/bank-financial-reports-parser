@@ -1,7 +1,7 @@
 import streamlit as st
 from data_access import get_metrics
 from labels import REASON_LABELS, STATUS_LABELS
-from notes import list_flags, ALLOWED_TRANSITIONS, change_status
+from notes import ALLOWED_TRANSITIONS, change_status, list_flags
 
 st.set_page_config(page_title="Metrik Ditandai", layout="wide")
 
@@ -59,7 +59,7 @@ view = flags_df.assign(
     ],
 ).fillna("-")
 
-table_version = st.session_state.get("table_version",0)
+table_version = st.session_state.get("table_version", 0)
 table_key = f"flags-{selected_bank}-{selected_period}-{selected_status}-{table_version}"
 event = st.dataframe(
     view,
@@ -83,17 +83,16 @@ event = st.dataframe(
         "status": st.column_config.TextColumn("Status"),
         "updated_by": st.column_config.TextColumn("Diubah oleh"),
         "updated_at": st.column_config.TextColumn("Waktu diubah"),
-
     },
-    key = table_key,
-    on_select= "rerun",
+    key=table_key,
+    on_select="rerun",
     selection_mode="single-row",
 )
 if "flash" in st.session_state:
     st.success(st.session_state.pop("flash"))
 selected_rows = event.selection.rows
 if not selected_rows:
-    st.caption(f"Pilih satu baris untuk mengubah statusnya.")
+    st.caption("Pilih satu baris untuk mengubah statusnya.")
     st.stop()
 
 row = flags_df.iloc[selected_rows[0]]

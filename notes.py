@@ -50,7 +50,7 @@ def add_flag(bank_name, period_date, metric_alias, value, reason, note,
         raise ValueError(f"Alasan tidak dikenal: {reason}")
     flagged_by = (flagged_by or "").strip()
     if not flagged_by:
-        raise ValueError(f"Nama pengisi wajib diisi.")
+        raise ValueError("Nama pengisi wajib diisi.")
     note = (note or "").strip() or None
 
     conn = _connect(db_path)
