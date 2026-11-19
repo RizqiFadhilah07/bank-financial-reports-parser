@@ -139,6 +139,17 @@ Buka `http://127.0.0.1:8501`. UI memakai `.env` yang sama dengan pipeline.
 
 - Data di-cache selama 5 menit. Setelah pipeline menambah data, tabel menyegar sendiri dalam beberapa menit; untuk langsung melihatnya, hentikan server (`Ctrl+C`) lalu jalankan ulang.
 
+### Fitur flag (catatan pada metrik)
+
+Pengguna dapat menandai metrik yang nilainya perlu dicek ulang, lalu tim pengecek menindaklanjutinya.
+
+- **Menandai:** di halaman Data Metrik, pilih satu baris, isi nama, alasan, dan catatan opsional (maksimal 200 karakter), lalu simpan. Satu metrik hanya boleh punya satu tanda yang belum selesai.
+- **Status:** `needs_check` (Perlu dicek) ke `on_review` (On review) ke `done` (Done). Mundur satu langkah dari `on_review` ke `needs_check` boleh; melompat tidak boleh; `done` bersifat final. Status diubah di halaman Metrik Ditandai.
+- **Penyimpanan:** catatan disimpan di `notes.db` (SQLite) pada folder proyek, terpisah dari database sistem dan diabaikan Git. Pipeline dan `validate.py` tidak membacanya, dan nilai di `financial_data` tidak pernah diubah oleh fitur ini.
+- **Tanpa login:** nama diketik manual sebagai jejak, bukan sebagai pengaman.
+- **Cadangan:** bila folder proyek dihapus atau PC diganti, `notes.db` ikut hilang; salin file ini secara berkala.
+- Halaman Metrik Ditandai memuat nama metrik dari database sistem; bila gagal, tabel tetap tampil dengan alias metrik.
+
 ## Hak akses database
 
 Akun yang menjalankan pipeline cukup memiliki `CONNECT`, `SELECT`, `INSERT`, dan `UPDATE` pada schema `dbo`. Hak `DELETE`, `CREATE`, dan `DROP` tidak dibutuhkan (teruji dengan SQL login yang dibatasi demikian). Pembuatan schema dilakukan satu kali oleh akun yang berhak.
