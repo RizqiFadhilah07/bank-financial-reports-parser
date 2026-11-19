@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
-from data_access import get_banks, get_reports, get_metrics
+from data_access import get_banks, get_metrics, get_reports
+from labels import REASON_LABELS, STATUS_LABELS
 from notes import add_flag, list_flags
-from labels import STATUS_LABELS, REASON_LABELS
 
 st.set_page_config(page_title="Bank Reports", layout="wide")
 

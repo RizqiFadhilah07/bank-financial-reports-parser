@@ -45,7 +45,7 @@ def _connect(db_path):
 
 
 def add_flag(bank_name, period_date, metric_alias, value, reason, note,
-            flagged_by, db_path=DEFAULT_DB_PATH):
+             flagged_by, db_path=DEFAULT_DB_PATH):
     if reason not in REASONS:
         raise ValueError(f"Alasan tidak dikenal: {reason}")
     flagged_by = (flagged_by or "").strip()
