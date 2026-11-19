@@ -1,19 +1,9 @@
 import streamlit as st
 from data_access import get_metrics
+from labels import REASON_LABELS, STATUS_LABELS
 from notes import list_flags, ALLOWED_TRANSITIONS, change_status
 
 st.set_page_config(page_title="Metrik Ditandai", layout="wide")
-
-REASON_LABELS = {
-    "value_mismatch": "Nilai tidak sesuai PDF",
-    "wrong_sign_type": "Tanda salah",
-    "other": "Lainnya",
-}
-STATUS_LABELS = {
-    "needs_check": "Perlu dicek",
-    "on_review": "On review",
-    "done": "Done",
-}
 
 st.title("Metrik Ditandai")
 
