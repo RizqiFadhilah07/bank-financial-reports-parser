@@ -4,7 +4,7 @@ import logging
 import os
 import subprocess
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -30,6 +30,15 @@ def setup_logging():
 
 def is_run_day(today):
     return today.day == 15 or today.day == calendar.monthrange(today.year, today.month)[1]
+
+
+def hitung_due(today):
+    last_day = calendar.monthrange(today.year, today.month)[1]
+    if today.day == last_day:
+        return today
+    if today.day >= 15:
+        return today.replace(day=15)
+    return today.replace(day=1) - timedelta(days=1)
 
 
 def run_step(nama, argumen):
