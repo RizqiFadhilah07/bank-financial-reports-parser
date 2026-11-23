@@ -152,6 +152,11 @@ class BaseScraper(ABC):
     def find_reports(self, soup):
         pass
 
+    def ensure_report(self, reports):
+        if not reports:
+            raise RuntimeError("Tidak ada laporan bulanan ditemukan")
+
+
     def run(self):
         soup = self.fetch_page()
         reports = self.find_reports(soup)
@@ -161,6 +166,7 @@ class BaseScraper(ABC):
         reports = list(unique_reports.values())
 
         print(f"Found {len(reports)} monthly reports\n")
+        self.ensure_report(reports)
         for report in reports:
             print(f"{report['filename']}")
             print(f"URL : {report['pdf_url']}\n")

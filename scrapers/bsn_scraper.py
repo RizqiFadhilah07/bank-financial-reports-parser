@@ -154,6 +154,7 @@ class BsnScrapper (BaseScraper):
             reports = list(unique_reports.values())
 
             print(f"Found {len(reports)} monthly reports\n")
+            self.ensure_report(reports)
             for report in reports:
                 print(f"{report['filename']}")
                 print(f"URL : {report['pdf_url']}\n")
