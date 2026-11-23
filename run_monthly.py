@@ -41,6 +41,18 @@ def hitung_due(today):
     return today.replace(day=1) - timedelta(days=1)
 
 
+def baca_last_run(path):
+    try:
+        isi = path.read_text(encoding="utf-8").strip()
+        return date.fromisoformat(isi)
+    except (OSError, ValueError):
+        return None
+
+
+def tulis_last_run(path, due):
+    path.write_text(due.isoformat(), encoding="utf-8")
+
+
 def run_step(nama, argumen):
     cmd = [sys.executable, "-u", *argumen]
     env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
