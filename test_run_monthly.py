@@ -71,3 +71,9 @@ def test_baca_last_run_file_kosong(tmp_path):
 )
 def test_perlu_jalan(hari_ini, last_run, harapan):
     assert perlu_jalan(hari_ini, last_run) == harapan
+
+
+def test_baca_last_run_dengan_bom(tmp_path):
+    path = tmp_path / "last_run.txt"
+    path.write_bytes(b"\xef\xbb\xbf2026-11-15")
+    assert baca_last_run(path) == date(2026, 11, 15)

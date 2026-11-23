@@ -9,6 +9,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 LOG_DIR = HERE / "logs"
+LAST_RUN_FILE = LOG_DIR / "last_run.txt"
 logger = logging.getLogger("run_monthly")
 
 STEPS = [
@@ -43,7 +44,7 @@ def hitung_due(today):
 
 def baca_last_run(path):
     try:
-        isi = path.read_text(encoding="utf-8").strip()
+        isi = path.read_text(encoding="utf-8-sig").strip()
         return date.fromisoformat(isi)
     except (OSError, ValueError):
         return None
@@ -89,11 +90,16 @@ def main():
 
     setup_logging()
     today = date.today()
-    if not args.force and not is_run_day(today):
-        logger.info("Hari ini %s bukan tanggal 15 / akhir bulan, dilewati.", today)
+    last_run = baca_last_run(LAST_RUN_FILE)
+    if not args.force and not perlu_jalan(today, last_run):
+        logger.info(
+            "Jadwal %s sudah tercatat selesai (last_run %s), dilewati.",
+            hitung_due(today), last_run,
+        )
         return 0
 
     problem = []
+    berhenti = False
     for nama, argumen, stop in STEPS:
         if nama == "scrapers" and args.skip_scrapers:
             logger.info("Langkah scrapers dilewati (--skip scrapers)")
@@ -108,7 +114,12 @@ def main():
             problem.append(f"{nama} kode keluar {rc}")
             if stop:
                 logger.error("%s gagal, alur dihentikan", nama)
+                berhenti=True
                 break
+
+    if not berhenti and not args.force and not args.skip_scrapers:
+        tulis_last_run(LAST_RUN_FILE, hitung_due(today))
+        logger.info("Jadwal %s dicatat selesai.", hitung_due(today))
 
     if problem:
         logger.warning("Selesai dengan masalah: %s", "; ".join(problem))
