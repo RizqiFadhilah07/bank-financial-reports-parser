@@ -2,7 +2,7 @@ from datetime import date
 
 import pytest
 
-from run_monthly import baca_last_run, hitung_due, tulis_last_run
+from run_monthly import baca_last_run, hitung_due, perlu_jalan, tulis_last_run
 
 
 @pytest.mark.parametrize(
@@ -53,3 +53,21 @@ def test_baca_last_run_file_kosong(tmp_path):
     path = tmp_path / "last_run.txt"
     path.write_text("", encoding="utf-8")
     assert baca_last_run(path) is None
+
+
+@pytest.mark.parametrize(
+    "hari_ini, last_run, harapan",
+    [
+        (date(2026, 11, 16), None, True),
+        (date(2026, 11, 16), date(2026, 10, 31), True),
+        (date(2026, 11, 16), date(2026, 11, 15), False),
+        (date(2026, 11, 20), date(2026, 11, 15), False),
+        (date(2026, 11, 30), date(2026, 11, 15), True),
+        (date(2026, 11, 30), date(2026, 11, 30), False),
+        (date(2026, 12, 3), date(2026, 11, 30), False),
+        (date(2026, 12, 15), date(2026, 11, 30), True),
+        (date(2026, 11, 20), date(2026, 12, 1), False),
+    ],
+)
+def test_perlu_jalan(hari_ini, last_run, harapan):
+    assert perlu_jalan(hari_ini, last_run) == harapan

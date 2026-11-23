@@ -53,6 +53,12 @@ def tulis_last_run(path, due):
     path.write_text(due.isoformat(), encoding="utf-8")
 
 
+def perlu_jalan(today, last_run):
+    if last_run is None:
+        return True
+    return last_run < hitung_due(today)
+
+
 def run_step(nama, argumen):
     cmd = [sys.executable, "-u", *argumen]
     env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
