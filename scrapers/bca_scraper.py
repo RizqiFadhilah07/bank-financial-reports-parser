@@ -1,3 +1,4 @@
+import re
 from urllib.parse import urljoin
 try:
     from .base_scraper import BaseScraper
@@ -5,6 +6,11 @@ except ImportError:
     from base_scraper import BaseScraper
 
 class BcaScraper (BaseScraper):
+    JSON_URL_PATTERN = re.compile(
+        r'https://pustaka\.bca\.co\.id/[^"\\\s]*Laporan-Bulanan/[^"\\\s]*\.pdf',
+        re.IGNORECASE,
+    )
+
     def __init__(self):
         super().__init__(
             bank_code = "BCA",
@@ -15,9 +21,10 @@ class BcaScraper (BaseScraper):
     def find_reports(self, soup):
         reports = []
 
-        for link in soup.find_all("a"):
-            href = link.get("href")
+        candidates = [link.get("href") for link in soup.find_all("a")]
+        candidates += self.JSON_URL_PATTERN.findall(str(soup))
 
+        for href in dict.fromkeys(candidates):
             if not href:
                 continue
             if "laporan-bulanan" not in href.lower():
