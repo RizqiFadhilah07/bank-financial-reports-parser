@@ -26,7 +26,7 @@ class BtpnScraper(BaseScraper):
 
             if not href:
                 continue
-            if not href.lower().endswith(".pdf"):
+            if not (href.lower().endswith(".pdf") or "api/media/pdf" in href.lower()):
                 continue
 
             h4_tag = link.find("h4")
@@ -40,6 +40,9 @@ class BtpnScraper(BaseScraper):
 
             pdf_url = urljoin(self.base_url, href)
             month, year = self.extract_month_year(label_text)
+            if not (month and year):
+                print(f"Tidak dapat menentukan bulan/tahun dari {label_text}")
+                continue
 
             filename = self.build_filename(month, year)
             reports.append({"pdf_url": pdf_url, "filename": filename})
