@@ -57,6 +57,20 @@ def get_metrics(bank_name, period_date):
     )
 
 
+def naming_metric(df, kamus):
+    hasil = df.copy()
+    adalah_hilang = hasil["rule"] == "metric_hilang"
+    hasil.loc[adalah_hilang, "detail"] = hasil.loc[adalah_hilang, "detail"].map(
+        lambda alias: f"{kamus[alias]} ({alias})" if alias in kamus else alias
+    )
+    return hasil
+
+
+def get_metric_dict():
+    df = _query_df("SELECT metric_alias, metric_name FROM dbo.master_metrics")
+    return dict(zip(df["metric_alias"], df["metric_name"]))
+
+
 def get_findings(month=None):
     import validate
 
@@ -72,4 +86,5 @@ def get_findings(month=None):
     for rule, findings in rules:
         for bank, period, detail in findings:
             rows.append((rule, bank, period, detail))
-    return pd.DataFrame(rows, columns=["rule", "bank_name", "period_date", "detail"])
+    df = pd.DataFrame(rows, columns=["rule", "bank_name", "period_date", "detail"])
+    return naming_metric(df, get_metric_dict())
